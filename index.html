@@ -922,7 +922,7 @@ const waiters=[];function waitFor(fn){return new Promise(res=>waiters.push({fn,r
 const G={name:'אלי',day:0,money:12,role:'דר רחוב',wage:0,goodDays:0,stage:'title',clockMin:23*60+40,seenLobby:false,tier:0,
   hasPhone:false,phonePro:false,job:'dispatch',jobs:{dispatch:{wage:48,good:0,raiseGood:0,lastRaise:0,lvl:0},service:{wage:45,good:0,raiseGood:0,lastRaise:0,lvl:0}},
   energy:80,fridge:2,home:{},fines:[],ravkav:{has:false,bal:0},bank:{open:false,card:false,debt:0,limit:5000,num:''},tx:[],look:{shirt:0x5b8fc7,pants:0x2c3540},lastAsk:-1,nextJob:null,workDone:false};
-const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun'];
+const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor'];
 function gameClock(){const m=Math.floor(G.clockMin)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function hud(){$('#dayK').textContent=G.day?('יום '+G.day):'לילה';$('#dayV').textContent=gameClock();$('#money').textContent=fmt(G.money)+(G.bank.card&&G.bank.debt?` · אשראי ${fmt(G.bank.debt)}`:'');$('#role').textContent=G.role;
   $('#energyV').textContent=Math.round(G.energy)+'%';$('#energyV').style.color=G.energy<20?'var(--red)':'';$('#phoneBtn').hidden=!G.hasPhone}
@@ -2755,28 +2755,45 @@ const SPARK={};
 function stationModel(){const g=G_();add(g,box(3.2,.06,1.4,M(0x0f766e,{roughness:.7})),0,.03);const ln=box(3.1,.02,.06,0xffffff);add(g,ln,0,.07,.66);
   for(let i=0;i<4;i++)add(g,box(.05,.6,.05,M(0x9ca3af,{metalness:.6})),-1.2+i*.8,.3,-.55);add(g,box(3,.05,.05,M(0x9ca3af,{metalness:.6})),0,.6,-.55);
   add(g,_cyl(.05,.05,2.2,0x374151,8),1.55,1.1,-.6);const sg=sign(['P 🛴','חניית קורקינטים'],.9,.9,{bg:'#0f766e',size:110,w:256,h:256});sg.position.set(1.55,2.1,-.55);g.add(sg);const sg2=sg.clone();sg2.rotation.y=Math.PI;sg2.position.z=-.57;g.add(sg2);castAll(g);return g}
-function addStation(sc,x,z,yaw){const R=SCENES[sc];const g=stationModel();g.position.set(x,0,z);g.rotation.y=yaw;R.s.add(g);(SPARK[sc]=SPARK[sc]||[]).push({x,z,yaw,g})}
+function addStation(sc,x,z,yaw){const R=SCENES[sc];const g=stationModel();g.position.set(x,0,z);g.rotation.y=yaw;R.s.add(g);const p={x,z,yaw,g,ids:[]};(SPARK[sc]=SPARK[sc]||[]).push(p);
+  const mx=x+1.55*Math.cos(yaw),mz=z-1.55*Math.sin(yaw);const mc=G_();add(mc,box(.5,1.3,.35,M(0x0f766e)),0,.65);add(mc,box(.36,.28,.02,M(0x0b1220,{emissive:0x22d3ee,emissiveIntensity:.5})),0,1.05,.18);add(mc,box(.2,.04,.02,0xfacc15),0,.75,.18);mc.position.set(mx,0,mz+.35*Math.cos(yaw));mc.rotation.y=yaw;R.s.add(mc);
+  p.ids.push(addInter({scene:sc,x,z,r:3.2,mode:'walk',label:()=>SCRIDE?`🅿️ לחנות ולסיים רכיבה · ₪${scootCost(Math.max(0,G.clockMin-SCRIDE.start))}`:'',when:()=>!!SCRIDE,act:()=>endScooter()}));
+  p.ids.push(addInter({scene:sc,x:mx,z:mz+.9*Math.cos(yaw),r:1.1,mode:'walk',label:'🎫 מכונת קורקי · כרטיס וטעינה',when:()=>!SCRIDE,act:()=>korMachine()}));
+  if(R.isGen&&R.inters)R.inters.push(...p.ids)}
 function nearStation(sc,x,z){let b=null,bd=1e9;for(const p of SPARK[sc]||[]){const d=Math.hypot(p.x-x,p.z-z);if(d<bd){bd=d;b=p}}return b?{p:b,d:bd}:null}
 function placeScooter(sc,x,z,yaw){const R=SCENES[sc];if(!R)return;const g=scooterModel();g.position.set(x,0,z);g.rotation.y=yaw||0;g.rotation.z=.1;R.s.add(g);
   const o={g,x,z,sc};o.id=addInter({scene:sc,x,z,r:1.4,mode:'walk',label:'🛴 לשכור קורקינט · ₪5 עד שעה, ₪10 לשעה מלאה',when:()=>!SCRIDE&&player.mode==='walk',act:()=>rentScooter(o)});
   if(R.isGen&&R.inters)R.inters.push(o.id);(SCOOT[sc]=SCOOT[sc]||[]).push(o);return o}
 function stationSlot(p,k){const c=Math.cos(p.yaw),s=Math.sin(p.yaw),dx=-1.2+(k%4)*.8;return{x:p.x+dx*c,z:p.z-dx*s,yaw:p.yaw+Math.PI/2}}
-function spreadScooters(sc,spots,perEvery){const R=SCENES[sc];if(!R)return;(SCOOT[sc]||[]).forEach(o=>{delInter(o.id);R.s.remove(o.g)});(SPARK[sc]||[]).forEach(p=>R.s.remove(p.g));SCOOT[sc]=[];SPARK[sc]=[];
+function spreadScooters(sc,spots,perEvery){const R=SCENES[sc];if(!R)return;(SCOOT[sc]||[]).forEach(o=>{delInter(o.id);R.s.remove(o.g)});(SPARK[sc]||[]).forEach(p=>{R.s.remove(p.g);(p.ids||[]).forEach(delInter)});SCOOT[sc]=[];SPARK[sc]=[];
   for(const a of spots){const p=freeSpot(R,sc,a.x,a.z,1.9);if(p)addStation(sc,p.x,p.z,a.yaw||0)}
   SPARK[sc].forEach((p,i)=>{const n=i===0?2:i%perEvery===0?1:0;for(let k=0;k<n;k++){const q=stationSlot(p,k);placeScooter(sc,q.x,q.z,p.yaw)}});
   const md=MAPD[sc];if(md){md.pois=md.pois.filter(p=>!p.scoot);SPARK[sc].forEach(o=>md.pois.push({n:'חניית קורקינטים',x:o.x,z:o.z,c:'#0f766e',ic:'🛴',small:1,scoot:1}))}}
 function scootCost(min){return 10*Math.floor(min/60)+(min%60>0.5||min<1?5:0)}
-async function rentScooter(o){if(G.money<5&&!(G.bank&&G.bank.card)){toast('צריך לפחות ₪5 או כרטיס אשראי','bad');return}
+function KOR(){G.kor=G.kor||{bal:0,card:false,app:false,rides:[]};return G.kor}
+function korCharge(a,why){const K=KOR();K.bal-=a;K.rides.unshift({d:G.day,t:gameClock(),a,why});K.rides=K.rides.slice(0,12);save()}
+async function korTopUp(how){const K=KOR();const k=await say('קורקי · טעינה',`יתרה: ₪${K.bal}. כמה לטעון?`,['₪20','₪50','₪100','ביטול']);if(k===3)return false;const a=[20,50,100][k];
+  const m=how==='card'?'card':(G.money>=a?'cash':'card');if(m==='card'&&!(G.bank&&G.bank.card)){await say('קורקי','אין לך כרטיס אשראי. אפשר לטעון במזומן במכונה שבחניה, או להוציא כרטיס אשראי בבנק.');return false}
+  if(!pay(a,'טעינת קורקי',m)){await say('קורקי','אין מספיק כסף.');return false}K.bal+=a;beep(880,.08);toast(`נטענו ₪${a} · יתרה ₪${K.bal}`,'good');save();return true}
+async function korMachine(){const K=KOR();player.lock=true;
+  const opts=K.card?['לטעון את הכרטיס','לבדוק יתרה','ביטול']:['להוציא כרטיס קורקי · ₪5','ביטול'];const k=await say('מכונת קורקי',K.card?`הכרטיס שלך מחובר. יתרה: ₪${K.bal}.`:'שלום! כדי לשכור קורקינט צריך כרטיס קורקי או את האפליקציה. הכרטיס עולה ₪5.',opts);
+  if(!K.card&&k===0){if(!pay(5,'כרטיס קורקי',G.money>=5?'cash':'card')){await say('מכונת קורקי','אין מספיק כסף.');player.lock=false;return}K.card=true;save();beep(700,.1);await say('מכונת קורקי','🎫 הכרטיס יצא מהמכונה! עכשיו צריך לטעון אותו בכסף.');await korTopUp('any')}
+  else if(K.card&&k===0)await korTopUp('any');else if(K.card&&k===1)await say('מכונת קורקי',`יתרה בכרטיס: ₪${K.bal}`);player.lock=false}
+async function rentScooter(o){const K=KOR();player.lock=true;
+  if(!K.card&&!K.app){const opts=[...(G.hasPhone?['📱 להוריד את אפליקציית קורקי']:[]),'🎫 ללכת למכונה ולהוציא כרטיס','ביטול'];const k=await say('קורקינט קורקי','🔒 הקורקינט נעול. כדי לפתוח צריך כרטיס קורקי מהמכונה שבחניה, או את אפליקציית קורקי בטלפון.',opts);
+    if(G.hasPhone&&k===0){await korInstall();if(!K.app){player.lock=false;return}}else{if(opts[k]&&opts[k].includes('מכונה'))await korMachine();player.lock=false;return}}
+  if(K.bal<5){const k=await say('קורקי',`אין מספיק יתרה (₪${K.bal}). צריך לפחות ₪5.`,['לטעון עכשיו','ביטול']);if(k||!await korTopUp(K.app?'card':'any')){player.lock=false;return}}
+  await say('',K.app?'📱 סורקים את הקוד על הכידון... ביפ! הקורקינט נפתח.':'🎫 מצמידים את הכרטיס לקורא... ביפ! הקורקינט נפתח.');player.lock=false;
   delInter(o.id);const R=SCENES[o.sc];R.s.remove(o.g);SCOOT[o.sc]=SCOOT[o.sc].filter(q=>q!==o);
   const g=o.g;g.position.set(0,0,0);g.rotation.set(0,0,0);player.h.g.add(g);player.h.inner.position.y=.2;SCRIDE={g,start:G.clockMin,lean:0,sc:o.sc};$('#scootBtn').hidden=false;beep(660,.08);setTimeout(()=>beep(880,.1),90);
-  toast('🛴 הקורקינט פתוח! מסיימים בכל חניית קורקינטים · עד שעה ₪5','good')}
+  toast('🛴 סע! לסיום: עוצרים בחניית קורקינטים ולוחצים E · עד שעה ₪5','good')}
 function endScooter(force){if(!SCRIDE)return;const ns=nearStation(cur.name,player.x,player.z);const atSt=ns&&ns.d<4.5;
   if(!atSt&&!force){if(ns){setObj('חניית קורקינטים · כדי לסיים רכיבה',{scene:cur.name,x:ns.p.x,z:ns.p.z});toast(`צריך לחנות בעמדה · החניה הקרובה ${Math.round(ns.d)} מ׳ ממך (סימנתי לך)`,'bad')}else toast('אין כאן חניית קורקינטים','bad');return}
   const S=SCRIDE;SCRIDE=null;player.h.g.remove(S.g);player.h.inner.position.y=0;$('#scootBtn').hidden=true;const min=Math.max(0,G.clockMin-S.start);let cost=scootCost(min),fine=0;
   if(atSt){const used=(SCOOT[cur.name]||[]).filter(o=>Math.hypot(o.x-ns.p.x,o.z-ns.p.z)<2.5).length;const q=stationSlot(ns.p,used);placeScooter(cur.name,q.x,q.z,ns.p.yaw)}
   else{fine=10;if(cur&&SCENES[S.sc])placeScooter(S.sc,player.x+Math.cos(player.yaw)*.9,player.z-Math.sin(player.yaw)*.9,player.yaw)}
-  pay(cost+fine,'קורקינט חשמלי · '+Math.round(min)+' דק׳'+(fine?' + קנס חניה':''),G.money>=cost+fine?'cash':'card');
-  toast(`🛴 הרכיבה הסתיימה · ${Math.round(min)} דק׳ · ₪${cost}${fine?` + קנס ₪${fine} על חניה מחוץ לעמדה`:''}`,fine?'bad':'good');if(objective.text&&objective.text.startsWith('חניית קורקינטים'))setObj('',null);hud();save()}
+  korCharge(cost+fine,'רכיבה · '+Math.round(min)+' דק׳'+(fine?' + קנס חניה':''));
+  toast(`🛴 הרכיבה הסתיימה · ${Math.round(min)} דק׳ · ₪${cost}${fine?` + קנס ₪${fine} על חניה מחוץ לעמדה`:''} · יתרה בקורקי ₪${KOR().bal}`,fine?'bad':'good');if(objective.text&&objective.text.startsWith('חניית קורקינטים'))setObj('',null);hud();save()}
 /* faster movement & standing pose while riding */
 const _ap0=animHuman;animHuman=function(h,speed,dt){if(SCRIDE&&player.h===h){_ap0(h,0,dt);const k=Math.min(1,dt*6);SCRIDE.lean+=((speed>.5?.06:0)-SCRIDE.lean)*k;
     h.inner.rotation.x=SCRIDE.lean;h.legL.rotation.x=.15;h.legR.rotation.x=-.25;h.kneeL.rotation.x=.25;h.kneeR.rotation.x=.3;h.armL.rotation.x=h.armR.rotation.x=-.75;h.elbL.rotation.x=h.elbR.rotation.x=-.35;
@@ -2784,7 +2801,7 @@ const _ap0=animHuman;animHuman=function(h,speed,dt){if(SCRIDE&&player.h===h){_ap
 const _gs1=goScene;goScene=function(name,x,z,yaw){if(SCRIDE&&cur&&cur.name!==name)endScooter(true);return _gs1(name,x,z,yaw)};
 const _ec0=enterCar;enterCar=function(c){if(SCRIDE)endScooter(true);return _ec0(c)};
 const _tick4=V8.tick;V8.tick=function(dt){_tick4(dt);if(!SCRIDE)return;const min=Math.max(0,G.clockMin-SCRIDE.start);const ns=nearStation(cur.name,player.x,player.z);const at=ns&&ns.d<4.5;
-  const b=$('#scootBtn');const t=at?`🅿️ לסיים רכיבה כאן · ₪${scootCost(min)}`:`🛴 ${Math.floor(min)} דק׳ · ₪${scootCost(min)} · חניה קרובה ${ns?Math.round(ns.d)+' מ׳':'—'}`;if(b._t!==t){b._t=t;b.textContent=t;b.classList.toggle('at',!!at)}};
+  const b=$('#scootBtn');const t=at?`🅿️ לחץ/י E כדי לחנות · ₪${scootCost(min)}`:`🛴 ${Math.floor(min)} דק׳ · ₪${scootCost(min)} · חניה קרובה ${ns?Math.round(ns.d)+' מ׳':'—'}`;if(b._t!==t){b._t=t;b.textContent=t;b.classList.toggle('at',!!at)}};
 /* parking stations on every street */
 function genSpots(){const o=[];for(const x of GXS)for(const z of[-95,-35,35,95]){o.push({x:x+(x<0?-9:9),z,yaw:Math.PI/2})}for(const z of GXS)for(const x of[-95,-35,35,95]){o.push({x,z:z+(z<0?-9:9),yaw:0})}o.push({x:-8,z:30,yaw:0},{x:8,z:-25,yaw:0},{x:4,z:122,yaw:0});return o}
 function roadSpots(sc,max){const rd=(MAPD[sc]&&MAPD[sc].roads)||(SCENES[sc]&&SCENES[sc]._roads)||[];const o=[];for(const r of rd){if(r.ped)continue;const L=Math.hypot(r.x2-r.x1,r.z2-r.z1);const n=Math.max(1,Math.min(3,Math.round(L/45)));const nx=-(r.z2-r.z1)/L,nz=(r.x2-r.x1)/L,yaw=Math.atan2(r.x2-r.x1,r.z2-r.z1)+Math.PI/2;
@@ -2795,6 +2812,22 @@ const _bc3b=buildCity3;buildCity3=function(){const r=_bc3b();try{spreadScooters(
 const _init2=V8.init;V8.init=function(){_init2();try{spreadScooters('out',roadSpots('out',24),2);
   for(const sc of['city2','city3'])if(SCENES[sc]&&!SPARK[sc])spreadScooters(sc,roadSpots(sc,6).concat(sc==='city2'?[{x:-30,z:6,yaw:0},{x:30,z:6,yaw:0}]:[{x:-35,z:26,yaw:0},{x:35,z:26,yaw:0}]),2)}catch(e){console.warn(e)}
   $('#scootBtn').addEventListener('click',()=>endScooter());addEventListener('keydown',e=>{if((e.key==='k'||e.key==='K'||e.key==='ל')&&SCRIDE)endScooter()})};
+/* Korki app */
+async function korInstall(){const K=KOR();if(!G.hasPhone){toast('צריך טלפון','bad');return}await say('','📲 מוריד/ה את אפליקציית קורקי... ✓ הותקנה!');
+  const k=await say('קורקי',(G.bank&&G.bank.card)?'ברוך/ה הבא/ה! לחבר את כרטיס האשראי לטעינות?':'ברוך/ה הבא/ה! אין לך כרטיס אשראי, אז את הארנק טוענים במזומן במכונה שבחניה.',(G.bank&&G.bank.card)?['לחבר ולטעון עכשיו','אחר כך']:['הבנתי']);
+  K.app=true;save();if((G.bank&&G.bank.card)&&k===0)await korTopUp('card')}
+APPS.push({id:'kor',n:'קורקי',c:'#10b981',i:'🛴'});
+const _app3=V8.app;V8.app=function(id,body){if(id!=='kor'){_app3(id,body);return}const K=KOR();const sc=cur?cur.name:'out';
+  if(!K.app){const B=body(`<div style="text-align:center;padding:10px"><div style="font-size:46px">🛴</div><b>קורקי · קורקינטים שיתופיים</b><p style="color:var(--muted);font-size:13px">₪5 עד שעה · ₪10 לשעה מלאה · מסיימים בכל חניה</p><button class="pbtn" id="korIn">להתקין את האפליקציה</button></div>`);
+    B.querySelector('#korIn').addEventListener('click',async()=>{$('#phone').hidden=true;player.lock=true;await korInstall();player.lock=false});return}
+  const ns=nearStation(sc,player.x,player.z);const min=SCRIDE?Math.max(0,G.clockMin-SCRIDE.start):0;
+  const B=body(`<div class="prow"><span>יתרה בארנק</span><b>₪${K.bal}</b></div>${SCRIDE?`<div class="prow" style="background:#064e3b"><span>🛴 ברכיבה · ${Math.floor(min)} דק׳</span><b>₪${scootCost(min)}</b></div>`:''}
+   <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="pbtn" id="korTop">טעינה בכרטיס אשראי</button><button class="pbtn" id="korNav" style="background:#0f766e">ניווט לחניה הקרובה${ns?' · '+Math.round(ns.d)+' מ׳':''}</button>${SCRIDE?'<button class="pbtn" id="korEnd" style="background:#dc2626">לסיים רכיבה</button>':''}</div>
+   <div style="color:var(--muted);font-size:12px">${(SPARK[sc]||[]).length} חניות ו-${(SCOOT[sc]||[]).length} קורקינטים פנויים ב${esc(cityName(sc))}${K.card?' · יש לך גם כרטיס קורקי':''}</div>
+   <b style="font-size:13px">נסיעות אחרונות</b>${K.rides.length?K.rides.map(r=>`<div class="prow"><span>יום ${r.d} · ${r.t} · ${esc(r.why)}</span><b>-₪${r.a}</b></div>`).join(''):'<div class="prow">עוד לא רכבת</div>'}`);
+  B.querySelector('#korTop').addEventListener('click',async()=>{$('#phone').hidden=true;player.lock=true;await korTopUp('card');player.lock=false});
+  B.querySelector('#korNav').addEventListener('click',()=>{if(!ns)return;setObj('חניית קורקינטים',{scene:sc,x:ns.p.x,z:ns.p.z});$('#phone').hidden=true});
+  const e=B.querySelector('#korEnd');if(e)e.addEventListener('click',()=>{$('#phone').hidden=true;endScooter()})};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
