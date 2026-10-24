@@ -271,6 +271,14 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+.korbox{display:flex;flex-direction:column;gap:8px}.kor-hd{font-weight:800;font-size:16px}.kor-row{display:flex;justify-content:space-between;align-items:center;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:8px 10px}.kor-row div{display:flex;flex-direction:column}.kor-row small{color:var(--muted)}
+.kor-pm{font-size:12px;background:#0b1220;border-radius:8px;padding:6px 8px;color:#a7f3d0}.kor-big{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px;background:linear-gradient(160deg,#064e3b,#0f172a);border-radius:14px;text-align:center}
+.kor-scoot{font-size:52px;animation:pop .5s ease}.kor-no{font-size:30px;letter-spacing:2px;font-family:var(--f-mono)}.kor-bat{width:70%;height:8px;background:#1f2937;border-radius:4px;overflow:hidden}.kor-bat i{display:block;height:100%;background:#22c55e}
+.kor-timer{font-family:var(--f-mono);font-size:34px;font-weight:700}.kor-go{background:#10b981!important;font-size:16px}.kor-ok{width:64px;height:64px;border-radius:50%;background:#16a34a;display:grid;place-items:center;font-size:36px;color:#fff;animation:pop .4s ease}
+.kpay{display:flex;justify-content:center;padding:6px 0}.kcard{width:250px;height:155px;border-radius:14px;padding:14px;color:#fff;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 24px rgba(0,0,0,.45);background:linear-gradient(135deg,#1e3a8a,#2563eb 60%,#60a5fa)}
+.kcard.kor{background:linear-gradient(135deg,#065f46,#10b981 60%,#6ee7b7)}.kcard.cash{background:linear-gradient(135deg,#166534,#4d7c0f);align-items:center;justify-content:center}.kc-top{display:flex;justify-content:space-between}.kc-nfc{transform:rotate(90deg);font-weight:800;opacity:.8}
+.kc-chip{width:38px;height:28px;border-radius:6px;background:linear-gradient(135deg,#fde68a,#d97706)}.kc-num{font-family:var(--f-mono);font-size:17px;letter-spacing:1px;direction:ltr;text-align:left}.kc-bot{display:flex;justify-content:space-between;font-size:12px}
+.kcard.tap{animation:ktap .65s ease}@keyframes ktap{0%{transform:none}40%{transform:translateY(-18px) scale(.94);box-shadow:0 0 0 6px rgba(52,211,153,.6)}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2757,7 +2765,7 @@ function stationModel(){const g=G_();add(g,box(3.2,.06,1.4,M(0x0f766e,{roughness
   add(g,_cyl(.05,.05,2.2,0x374151,8),1.55,1.1,-.6);const sg=sign(['P 🛴','חניית קורקינטים'],.9,.9,{bg:'#0f766e',size:110,w:256,h:256});sg.position.set(1.55,2.1,-.55);g.add(sg);const sg2=sg.clone();sg2.rotation.y=Math.PI;sg2.position.z=-.57;g.add(sg2);castAll(g);return g}
 function addStation(sc,x,z,yaw){const R=SCENES[sc];const g=stationModel();g.position.set(x,0,z);g.rotation.y=yaw;R.s.add(g);const p={x,z,yaw,g,ids:[]};(SPARK[sc]=SPARK[sc]||[]).push(p);
   const mx=x+1.55*Math.cos(yaw),mz=z-1.55*Math.sin(yaw);const mc=G_();add(mc,box(.5,1.3,.35,M(0x0f766e)),0,.65);add(mc,box(.36,.28,.02,M(0x0b1220,{emissive:0x22d3ee,emissiveIntensity:.5})),0,1.05,.18);add(mc,box(.2,.04,.02,0xfacc15),0,.75,.18);mc.position.set(mx,0,mz+.35*Math.cos(yaw));mc.rotation.y=yaw;R.s.add(mc);
-  p.ids.push(addInter({scene:sc,x,z,r:3.2,mode:'walk',label:()=>SCRIDE?`🅿️ לחנות ולסיים רכיבה · ₪${scootCost(Math.max(0,G.clockMin-SCRIDE.start))}`:'',when:()=>!!SCRIDE,act:()=>endScooter()}));
+  p.ids.push(addInter({scene:sc,x,z,r:3.2,mode:'walk',label:()=>SCRIDE?`🅿️ שחרר קורקינט ושלם · ₪${scootCost(Math.max(0,G.clockMin-SCRIDE.start))}`:'',when:()=>!!SCRIDE,act:()=>endScooter()}));
   p.ids.push(addInter({scene:sc,x:mx,z:mz+.9*Math.cos(yaw),r:1.1,mode:'walk',label:'🎫 מכונת קורקי · כרטיס וטעינה',when:()=>!SCRIDE,act:()=>korMachine()}));
   if(R.isGen&&R.inters)R.inters.push(...p.ids)}
 function nearStation(sc,x,z){let b=null,bd=1e9;for(const p of SPARK[sc]||[]){const d=Math.hypot(p.x-x,p.z-z);if(d<bd){bd=d;b=p}}return b?{p:b,d:bd}:null}
@@ -2828,6 +2836,64 @@ const _app3=V8.app;V8.app=function(id,body){if(id!=='kor'){_app3(id,body);return
   B.querySelector('#korTop').addEventListener('click',async()=>{$('#phone').hidden=true;player.lock=true;await korTopUp('card');player.lock=false});
   B.querySelector('#korNav').addEventListener('click',()=>{if(!ns)return;setObj('חניית קורקינטים',{scene:sc,x:ns.p.x,z:ns.p.z});$('#phone').hidden=true});
   const e=B.querySelector('#korEnd');if(e)e.addEventListener('click',()=>{$('#phone').hidden=true;endScooter()})};
+
+/* ====================== V8 PART J: Korki phone flow — nearby → connect → start → release & pay → charge ====================== */
+let KUI={scr:'list',sel:null,pm:null};
+function scooNo(o){if(!o.no){o.no=1000+Math.floor(Math.random()*8999);o.bat=38+Math.floor(Math.random()*62)}return o}
+function korMethods(){const K=KOR(),m=[];if(G.bank&&G.bank.card)m.push('cc');if(K.card)m.push('kor');return m}
+function openKor(o){KUI={scr:SCRIDE?'ride':(o?'conn':'list'),sel:o||null,pm:null};showKor()}
+function showKor(){if(G.hasPhone){$('#phone').hidden=false;openApp('kor');return}
+  const ov=$('#ov');ov.hidden=false;player.lock=true;$('#sheet').innerHTML='<span class="eyebrow">🎫 מסך המכונה בחניה · אין לך טלפון</span><div id="korBox" class="korbox"></div><button class="btn" id="korClose" style="background:#334155">סגור</button>';
+  $('#korClose').addEventListener('click',()=>{ov.hidden=true;player.lock=false});korRender($('#korBox'))}
+function korClose(){if(G.hasPhone)$('#phone').hidden=true;else{$('#ov').hidden=true;player.lock=false}}
+function korRefresh(){if(G.hasPhone){if(!$('#phone').hidden)openApp('kor')}else{const b=$('#korBox');if(b)korRender(b)}}
+function ccLast(){const n=String((G.bank&&G.bank.num)||'4580 0000 0000 1234').replace(/\D/g,'');return n.slice(-4)}
+function cardHTML(m,amt){const K=KOR();return m==='cc'?`<div class="kcard cc" id="kcard"><div class="kc-top"><b>בנק העיר</b><span class="kc-nfc">)))</span></div><div class="kc-chip"></div><div class="kc-num">•••• •••• •••• ${ccLast()}</div><div class="kc-bot"><span>${esc(G.name||'')}</span><b>VISA</b></div></div>`
+  :`<div class="kcard kor" id="kcard"><div class="kc-top"><b>🛴 קורקי</b><span class="kc-nfc">)))</span></div><div class="kc-num" style="font-size:15px">כרטיס נטען</div><div class="kc-bot"><span>יתרה ₪${K.bal}</span><b>${amt!=null&&K.bal<amt?'⚠ אין מספיק':''}</b></div></div>`}
+function korRender(el){const K=KOR(),sc=cur?cur.name:'out',ms=korMethods();let h='';
+  if(KUI.scr==='list'){const L=(SCOOT[sc]||[]).map(o=>Object.assign(scooNo(o),{d:Math.hypot(o.x-player.x,o.z-player.z)})).sort((a,b)=>a.d-b.d).slice(0,6);
+    h=`<div class="kor-hd">🛴 קורקינטים קרובים</div>${L.length?L.map((o,i)=>`<div class="kor-row"><div><b>#${o.no}</b><small>🔋 ${o.bat}% · ${Math.round(o.d)} מ׳ ממך</small></div><button class="pbtn" data-k="${i}">${o.d<9?'חיבור':'ניווט'}</button></div>`).join(''):'<div class="prow">אין קורקינטים פנויים באזור</div>'}
+      <div class="kor-pm">${ms.length?'אמצעי תשלום: '+ms.map(m=>m==='cc'?'💳 אשראי •'+ccLast():'🎫 כרטיס קורקי ₪'+K.bal).join(' · '):'⚠ אין אמצעי תשלום: הוצא/י כרטיס קורקי במכונה שבחניה או כרטיס אשראי בבנק'}</div>
+      <small style="color:var(--muted)">₪5 עד שעה · ₪10 לשעה מלאה · מסיימים בכל חניית קורקינטים</small>`;
+    el.innerHTML=h;el.querySelectorAll('[data-k]').forEach(b=>b.addEventListener('click',()=>{const o=L[+b.dataset.k];if(o.d>=9){setObj('קורקינט #'+o.no,{scene:sc,x:o.x,z:o.z});korClose();return}KUI.scr='conn';KUI.sel=o;korRender(el)}));return}
+  if(KUI.scr==='conn'){const o=scooNo(KUI.sel);h=`<div class="kor-big"><div class="kor-scoot">🛴</div><small>מחובר לקורקינט</small><b class="kor-no">#${o.no}</b><div class="kor-bat"><i style="width:${o.bat}%"></i></div><small>🔋 ${o.bat}% · טווח כ-${Math.round(o.bat*.35)} ק״מ</small></div>
+      <div class="kor-pm">${ms.length?'החיוב יתבצע בסוף הרכיבה':'⚠ אין אמצעי תשלום. צריך כרטיס קורקי מהמכונה בחניה או כרטיס אשראי מהבנק.'}</div>
+      <div style="display:flex;gap:8px"><button class="btn kor-go" id="kGo" ${ms.length?'':'disabled'}>▶ התחל</button><button class="btn" id="kBack" style="background:#334155">חזרה</button></div>`;
+    el.innerHTML=h;el.querySelector('#kBack').addEventListener('click',()=>{KUI.scr='list';korRender(el)});
+    el.querySelector('#kGo').addEventListener('click',()=>{if(!(SCOOT[o.sc]||[]).includes(o)){toast('הקורקינט כבר לא פנוי','bad');KUI.scr='list';korRender(el);return}beep(880,.07);setTimeout(()=>beep(1175,.09),110);korClose();mountScooter(o)});return}
+  if(KUI.scr==='ride'){if(!SCRIDE){KUI.scr='list';return korRender(el)}const min=Math.max(0,G.clockMin-SCRIDE.start),ns=nearStation(sc,player.x,player.z),at=ns&&ns.d<4.5;
+    h=`<div class="kor-big"><small>ברכיבה על קורקינט</small><b class="kor-no">#${SCRIDE.no}</b><div class="kor-timer">${String(Math.floor(min/60)).padStart(2,'0')}:${String(Math.floor(min%60)).padStart(2,'0')}</div><b>₪${scootCost(min)}</b></div>
+      ${at?'<button class="btn kor-go" id="kRel">🅿️ שחרר קורקינט ושלם</button>':`<div class="kor-pm">כדי לסיים צריך לעצור בחניית קורקינטים · הקרובה ${ns?Math.round(ns.d)+' מ׳':'—'}</div><button class="btn" id="kNav" style="background:#0f766e">ניווט לחניה הקרובה</button>`}`;
+    el.innerHTML=h;const r=el.querySelector('#kRel');if(r)r.addEventListener('click',()=>{KUI.scr='pay';KUI.amt=scootCost(Math.max(0,G.clockMin-SCRIDE.start));KUI.min=min;KUI.pm=ms[0]||'cash';korRender(el)});
+    const n=el.querySelector('#kNav');if(n)n.addEventListener('click',()=>{if(ns)setObj('חניית קורקינטים',{scene:sc,x:ns.p.x,z:ns.p.z});korClose()});return}
+  if(KUI.scr==='pay'){const a=KUI.amt,opts=ms.length?ms:['cash'];if(!opts.includes(KUI.pm))KUI.pm=opts[0];
+    h=`<div class="kor-hd">תשלום על הרכיבה</div><div class="prow"><span>קורקינט #${SCRIDE.no} · ${Math.round(KUI.min)} דק׳</span><b>₪${a}</b></div>
+      ${opts.length>1?`<div class="jbtabs">${opts.map(m=>`<button data-pm="${m}" class="${KUI.pm===m?'on':''}">${m==='cc'?'💳 כרטיס אשראי':'🎫 כרטיס קורקי'}</button>`).join('')}</div>`:''}
+      <div class="kpay">${KUI.pm==='cash'?'<div class="kcard cash"><b>💵 מזומן</b><small>משלמים במכונה שבחניה</small></div>':cardHTML(KUI.pm,a)}</div>
+      ${KUI.pm==='kor'&&K.bal<a?'<button class="btn" id="kTop" style="background:#0f766e">לטעון את כרטיס קורקי</button>':`<button class="btn kor-go" id="kCh">חיוב ₪${a}</button>`}`;
+    el.innerHTML=h;el.querySelectorAll('[data-pm]').forEach(b=>b.addEventListener('click',()=>{KUI.pm=b.dataset.pm;korRender(el)}));
+    const t=el.querySelector('#kTop');if(t)t.addEventListener('click',async()=>{korClose();await korTopUp('any');showKor()});
+    const c=el.querySelector('#kCh');if(c)c.addEventListener('click',()=>{if(c.disabled)return;c.disabled=true;if(KUI.pm==='cc'&&G.money<0){}const card=el.querySelector('.kcard');if(card)card.classList.add('tap');beep(1320,.09,'square');setTimeout(()=>beep(1320,.09,'square'),170);
+      setTimeout(()=>{const ok=releaseScooter(KUI.pm,a);KUI.scr='done';KUI.ok=ok;korRender(el);setTimeout(()=>{if(KUI.scr==='done'){KUI.scr='list';korClose()}},1700)},650)});return}
+  if(KUI.scr==='done'){el.innerHTML=KUI.ok?`<div class="kor-big"><div class="kor-ok">✓</div><b>שולם ₪${KUI.amt}</b><small>הקורקינט שוחרר וננעל בחניה · תודה שרכבת עם קורקי!</small></div>`:`<div class="kor-big"><div class="kor-ok" style="background:#dc2626">✕</div><b>החיוב נכשל</b><small>אין מספיק כסף</small></div>`;return}}
+function mountScooter(o){scooNo(o);delInter(o.id);const R=SCENES[o.sc];R.s.remove(o.g);SCOOT[o.sc]=SCOOT[o.sc].filter(q=>q!==o);
+  player.x=o.x;player.z=o.z;player.yaw=o.g.rotation.y;camYaw=player.yaw;const g=o.g;g.position.set(0,0,0);g.rotation.set(0,0,0);player.h.g.add(g);player.h.inner.position.y=.2;
+  SCRIDE={g,start:G.clockMin,lean:0,sc:o.sc,no:o.no,bat:o.bat};$('#scootBtn').hidden=false;toast(`🛴 קורקינט #${o.no} · סע! לסיום עוצרים בחניה ולוחצים E`,'good')}
+function releaseScooter(pm,a){const K=KOR();const ok=pm==='kor'?K.bal>=a:pm==='cc'?pay(a,'קורקי · רכיבה #'+SCRIDE.no,'card'):pay(a,'קורקי · רכיבה #'+SCRIDE.no,'cash');if(!ok)return false;
+  if(pm==='kor')korCharge(a,'רכיבה #'+SCRIDE.no+' · '+Math.round(KUI.min)+' דק׳');else{K.rides.unshift({d:G.day,t:gameClock(),a,why:'רכיבה #'+SCRIDE.no+' · '+(pm==='cc'?'אשראי':'מזומן')});K.rides=K.rides.slice(0,12)}
+  const S=SCRIDE;SCRIDE=null;player.h.g.remove(S.g);player.h.inner.position.y=0;$('#scootBtn').hidden=true;const ns=nearStation(cur.name,player.x,player.z);
+  if(ns){const used=(SCOOT[cur.name]||[]).filter(o=>Math.hypot(o.x-ns.p.x,o.z-ns.p.z)<2.5).length;const q=stationSlot(ns.p,used);const o=placeScooter(cur.name,q.x,q.z,ns.p.yaw);if(o){o.no=S.no;o.bat=Math.max(5,S.bat-3)}}
+  if(objective.text&&objective.text.startsWith('חניית קורקינטים'))setObj('',null);hud();save();return true}
+/* E on a scooter / station / the green button → open Korki */
+rentScooter=function(o){openKor(o)};
+const _end0=endScooter;endScooter=function(force){if(!SCRIDE)return;if(force){const min=Math.max(0,G.clockMin-SCRIDE.start);const ns=nearStation(cur.name,player.x,player.z);const fine=ns&&ns.d<4.5?0:10;const a=scootCost(min)+fine;const ms=korMethods();
+    KUI.min=min;const pm=ms.includes('cc')?'cc':ms.includes('kor')&&KOR().bal>=a?'kor':'cash';if(!releaseScooter(pm,a)){const S=SCRIDE;SCRIDE=null;player.h.g.remove(S.g);player.h.inner.position.y=0;$('#scootBtn').hidden=true;KOR().bal-=a}
+    toast(`🛴 הרכיבה הסתיימה אוטומטית · ₪${a}${fine?' (כולל קנס ₪10 על חניה מחוץ לעמדה)':''}`,fine?'bad':'');return}openKor()};
+const _addSt0=addStation;addStation=function(sc,x,z,yaw){_addSt0(sc,x,z,yaw);const p=SPARK[sc][SPARK[sc].length-1];const R=SCENES[sc];
+  const id=addInter({scene:sc,x,z,r:3.2,mode:'walk',label:'📱 קורקי · קורקינטים קרובים',when:()=>!SCRIDE,act:()=>openKor()});p.ids.push(id);if(R.isGen&&R.inters)R.inters.push(id)};
+const _app4=V8.app;V8.app=function(id,body){if(id!=='kor'){_app4(id,body);return}const B=body('<div class="korbox"></div>');
+  const K=KOR();if(!K.app){K.app=true;save()}if(SCRIDE&&KUI.scr!=='pay'&&KUI.scr!=='done')KUI.scr='ride';korRender(B.querySelector('.korbox')||B)};
+const _tick5=V8.tick;V8.tick=function(dt){_tick5(dt);if(SCRIDE&&KUI.scr==='ride'){KUI._t=(KUI._t||0)-dt;if(KUI._t<=0){KUI._t=1;korRefresh()}}};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
