@@ -278,6 +278,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+.jbcity{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:4px 0}.jbcity button{background:#1f2937;color:var(--text);border:1px solid var(--line);border-radius:16px;padding:5px 10px;cursor:pointer;font-size:13px}.jbcity button.on{background:#0f766e;border-color:#14b8a6}.jbcity select{background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:5px}.jbfar{font-size:12px;color:#fcd34d;margin:2px 0}
 .lvlchip{cursor:pointer;min-width:92px}.xpbar{display:block;height:6px;border-radius:3px;background:#1f2937;overflow:hidden;margin-top:3px}.xpbar b{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#facc15)}
 #raceHud{top:76px;left:50%;transform:translateX(-50%);background:rgba(11,20,28,.88);border:2px solid #f97316;border-radius:14px;padding:8px 18px;display:flex;flex-direction:column;align-items:center;font-family:var(--f-mono);z-index:8}#raceHud b{font-size:22px}#raceHud small{color:var(--muted)}#raceHud .rc{font-size:64px;color:#f97316;animation:pop .5s ease}#raceHud .rc.go{color:#22c55e}
 #radioBtn{bottom:228px;inset-inline-end:16px;z-index:7}.qrow{display:flex;flex-direction:column;gap:2px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:10px;padding:8px}.qrow small{color:var(--muted)}.qrow.done{opacity:.65;border-color:#16a34a}
@@ -2120,7 +2121,7 @@ function totalGood(){return Object.values(G.jobs).reduce((a,j)=>a+(j.good||0),0)
 let JBF={cat:'all',q:''};
 function jobBoard(id){player.lock=true;const ov=$('#ov');ov.hidden=false;const all=postings(id);const cats={all:'הכול',sales:'מכירות',food:'מסעדנות',office:'משרד',care:'בריאות',tech:'הייטק',manual:'עבודת כפיים',drive:'נהיגה',edu:'חינוך'};
   const draw=()=>{const list=all.filter(j=>(JBF.cat==='all'||j.cat===JBF.cat)&&(!JBF.q||(j.role+j.emp).includes(JBF.q)));
-    $('#sheet').innerHTML=`<span class="eyebrow">לשכת התעסוקה · ${esc(cityName(id))}</span><h2>${all.length} משרות פנויות</h2>
+    $('#sheet').innerHTML=`<span class="eyebrow">לשכת התעסוקה · ${esc(cityName(id))}</span><h2>${all.length} משרות פנויות</h2>${jbCities(id)}
      <div class="jbtabs">${Object.entries(cats).map(([k,v])=>`<button class="${JBF.cat===k?'on':''}" data-jc="${k}">${v}</button>`).join('')}</div>
      <input id="jbq" class="jbq" placeholder="חיפוש: מורה, נהג, קופאי..." value="${esc(JBF.q)}">
      <div class="jlist">${list.map(j=>{const ok=totalGood()>=j.req;return `<div class="jrow"><div><b>${esc(j.role)}</b><small>${esc(j.emp)} · משמרת ${j.shift}${j.req?` · דרוש ניסיון: ${j.req} ימים טובים`:''}</small></div><div class="jw">₪${j.wage}<small>לשעה</small></div>
@@ -2227,7 +2228,7 @@ const V8={};
 APPS.push({id:'jobs',n:'דרושים',c:'#0d9488',i:'J'},{id:'map',n:'מפה',c:'#0284c7',i:'M'});
 function phoneApp3(id,body){
   if(id==='map'){$('#phone').hidden=true;openMap();return}
-  if(id==='jobs'){$('#phone').hidden=true;const sc=cur&&MAPD[cur.name]?cur.name:'out';jobBoard(sc);return}
+  if(id==='jobs'){$('#phone').hidden=true;jobBoard(homeCity());return}
   if(V8.app)V8.app(id,body)}
 function updateV8(dt){if(!cur)return;if(cur.isGen)updateGenCity(cur,dt);if(cur.pets)cur.pets.forEach(p=>animPet(p,dt,cur.bounds));if(V8.tick)V8.tick(dt);
   miniT-=dt;if(miniT<=0){miniT=.1;drawWalkMini()}}
@@ -3285,6 +3286,59 @@ const _appN=V8.app;V8.app=function(id,body){if(id!=='quests'){_appN(id,body);ret
   else{G.coins=G.coins||{};h+=`<b style="font-size:13px">🪙 מטבעות זהב (12 בכל עיר)</b>`+WORLD.map(c=>`<div class="prow"><span>${esc(c.n)}</span><b>${(G.coins[c.id]||[]).length}/12</b></div>`).join('')+`<b style="font-size:13px">🏁 שיאי מרוץ</b>`+WORLD.slice(3).map(c=>`<div class="prow"><span>${esc(c.n)}</span><b>${G.race&&G.race[c.id]?G.race[c.id].toFixed(1)+' שנ׳':'—'}</b></div>`).join('')}
   const B=body(h);B.querySelectorAll('[data-qt]').forEach(x=>x.addEventListener('click',()=>{QTAB=x.dataset.qt;openApp('quests')}))};
 setTimeout(lvlHud,0);
+
+/* ====================== V8 PART O: city buses in every city + jobs follow your home city ====================== */
+const CB={};let CBR=null;// per-scene bus network; active wait/ride state
+function laneSquare(r,step){const c=[[r,-r],[r,r],[-r,r],[-r,-r]],P=[];for(let i=0;i<4;i++){const a=c[i],b=c[(i+1)%4],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.round(L/step);for(let k=0;k<n;k++)P.push({x:a[0]+(b[0]-a[0])*k/n,z:a[1]+(b[1]-a[1])*k/n})}return P}
+function laneLine(x0,x1,z,step){const P=[];for(let x=x0;x<=x1;x+=step)P.push({x,z});return P}
+function nearIdx(P,x,z){let b=0,bd=1e9;P.forEach((p,i)=>{const d=Math.hypot(p.x-x,p.z-z);if(d<bd){bd=d;b=i}});return b}
+function stopModel(n,lines){const g=G_();add(g,box(3,.08,1.3,M(0x9ca3af)),0,2.5,0);for(const s of[-1,1])add(g,box(.08,2.5,.08,0x374151),s*1.4,1.25,-.5);add(g,box(3,1.6,.04,M(0xbfd6e6,{transparent:true,opacity:.35})),0,1.5,-.6);add(g,box(2.2,.1,.4,0x7c4a2a),0,.5,-.35);
+  const sg=sign(['🚏 '+n,'קווים '+lines],2.4,.7,{bg:'#0f5132',size:80,w:512,h:150});sg.position.set(0,2.95,0);g.add(sg);castAll(g);return g}
+function buildCityBus(sc,cfg){const R=SCENES[sc];if(!R)return;if(CB[sc]&&CB[sc].R===R)return;(CB[sc]&&CB[sc].ids||[]).forEach(delInter);const C={R,ids:[],P:cfg.P,closed:cfg.closed,lines:cfg.lines,stops:[]};CB[sc]=C;
+  cfg.stops.forEach(([n,x,z,yaw])=>{const li=nearIdx(C.P,x,z);const st={n,x,z,li,yaw};C.stops.push(st);const g=stopModel(n,cfg.lines.map(l=>l.no).join(' · '));g.position.set(x,0,z);g.rotation.y=yaw;R.s.add(g);
+    const id=addInter({scene:sc,x,z,r:2.6,mode:'walk',label:'🚏 לחכות לאוטובוס · '+n,when:()=>!CBR&&!BUSARR,act:()=>cbWait(sc,st)});C.ids.push(id);if(R.isGen&&R.inters)R.inters.push(id)});
+  const md=MAPD[sc];if(md){md.pois=md.pois.filter(p=>!p.cbus);C.stops.forEach(s=>md.pois.push({n:'תחנה · '+s.n,x:s.x,z:s.z,c:'#0f5132',ic:'🚏',small:1,cbus:1}))}}
+function genBusCfg(def){const D=DIST[def.n];return{closed:true,P:laneSquare(56.8,6),lines:[{no:'1',c:'#16a34a',dir:1,n:'טבעת העיר · עם כיוון השעון'},{no:'2',c:'#2563eb',dir:-1,n:'טבעת העיר · נגד כיוון השעון'}],
+  stops:[['העירייה',0,-52.6,0],['בית ספר ומרכז רפואי',52.6,0,-Math.PI/2],['הקניון',22,52.6,Math.PI],[D?D.n:'הכיכר השנייה',-22,52.6,Math.PI],['נדל״ן והיכרויות',-52.6,0,Math.PI/2],['שדרות הצפון',30,-52.6,0]]}}
+function cbWait(sc,st){const C=CB[sc];player.lock=true;say('תחנת אוטובוס · '+st.n,'איזה קו מחכים לו?',[...C.lines.map(l=>`קו ${l.no} · ${l.n} · מגיע בעוד ${1+seedOf(l.no+st.n+Math.floor(G.clockMin/10))%6} דק׳`),'ביטול']).then(k=>{player.lock=false;if(k>=C.lines.length)return;const line=C.lines[k];
+  const N=C.P.length,dir=C.closed?line.dir:(st.li>N/2?-1:1);let i=st.li;for(let s=0;s<9;s++){i-=dir;if(C.closed)i=(i+N)%N;else i=Math.max(0,Math.min(N-1,i))}
+  const bus=makeBus({no:line.no,dest:cityName(sc)});const p=C.P[i];bus.x=p.x;bus.z=p.z;bus.g.position.set(p.x,0,p.z);C.R.s.add(bus.g);CBR={sc,st,line,dir,bus,i,state:'coming',t:0};toast(`קו ${line.no} מגיע לתחנה...`)})}
+async function cbBoard(){const A=CBR;player.lock=true;const C=CB[A.sc];
+  if(G.ravkav&&G.ravkav.has&&G.ravkav.bal>=6){G.ravkav.bal-=6;addTx('אוטובוס קו '+A.line.no+' · '+cityName(A.sc),-6,'רב-קו');beep(1400,.06);setTimeout(()=>beep(1400,.06),110);toast(`🚌 תיקפת רב-קו · יתרה ₪${G.ravkav.bal}`,'good');save()}
+  else{const ok=await payPOS(8,'אוטובוס קו '+A.line.no+' · תשלום במתקף','card');if(!ok){await say('הנהג','בלי תשלום אי אפשר לנסוע. אפשר רב-קו או אשראי במתקף.');player.lock=false;return}}
+  const others=C.stops.filter(s=>s!==A.st);const k=await say('הנהג','לאן נוסעים? אני אעצור כשנגיע.',[...others.map(s=>s.n),'לרדת מהאוטובוס']);if(k>=others.length){player.lock=false;return}
+  A.to=others[k];await fade(true);A.state='ride';player.mode='ride';player.h.g.visible=false;await fade(false);toast('🚌 התחנה הבאה: '+A.to.n)}
+function cbTick(dt){const A=CBR;if(!A)return;const C=CB[A.sc];if(!C||cur.name!==A.sc){if(A.bus.g.parent)A.bus.g.parent.remove(A.bus.g);if(A.state==='ride'){player.mode='walk';player.h.g.visible=true}CBR=null;return}
+  const b=A.bus,N=C.P.length;const tgtIdx=A.state==='ride'?A.to.li:A.st.li;
+  if(A.state==='wait'){A.t+=dt;if(A.t>35){C.R.s.remove(b.g);CBR=null;toast('האוטובוס המשיך בלי לחכות')}return}
+  const p=C.P[A.i],dx=p.x-b.x,dz=p.z-b.z,d=Math.hypot(dx,dz);const atEnd=A.i===tgtIdx;const sp=atEnd?Math.min(11,1.2+d*.8):A.state==='ride'?12:10;
+  if(d<.6){if(atEnd){if(A.state==='coming'){A.state='wait';A.t=0;beep(500,.1);toast('🚌 האוטובוס עצר · הדלת פתוחה','good')}else cbArrive();return}A.i+=A.dir;if(C.closed)A.i=(A.i+N)%N;else{A.i=Math.max(0,Math.min(N-1,A.i));if((A.i===0||A.i===N-1)&&A.i!==tgtIdx)A.dir*=-1}return}
+  let dy=Math.atan2(dx,dz)-b.yaw;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;b.yaw+=dy*Math.min(1,dt*4);b.x+=dx/d*sp*dt;b.z+=dz/d*sp*dt;b.g.position.set(b.x,0,b.z);b.g.rotation.y=b.yaw;
+  if(A.state==='ride'){player.x=b.x;player.z=b.z;player.yaw=b.yaw}}
+async function cbArrive(){const A=CBR;CBR=null;beep(900,.1);await fade(true);A.bus.g.parent&&A.bus.g.parent.remove(A.bus.g);player.mode='walk';player.h.g.visible=true;player.x=A.to.x;player.z=A.to.z;const c=collide(player.x,player.z,.45);player.x=c.x;player.z=c.z;camInit=false;await fade(false);player.lock=false;toast('🚌 הגעת: '+A.to.n,'good');if(typeof funEv==='function'){funEv('bus');addXP(8)}}
+const _bgcO=buildGenCity;buildGenCity=function(def){const R=_bgcO(def);try{buildCityBus(def.id,genBusCfg(def));const C=CB[def.id];
+    const bid=addInter({scene:def.id,x:()=>CBR&&CBR.sc===def.id?CBR.bus.x:-999,z:()=>CBR&&CBR.sc===def.id?CBR.bus.z:-999,r:4.5,mode:'walk',label:'🚌 לעלות לאוטובוס',when:()=>CBR&&CBR.state==='wait',act:()=>cbBoard()});R.inters.push(bid)}catch(e){console.warn(e)}return R};
+function smallBus(sc){try{if(sc==='city2')buildCityBus('city2',{closed:false,P:laneLine(-62,62,-5,6),lines:[{no:'3',c:'#ea580c',n:'לאורך הטיילת'}],stops:[['הטיילת מערב',-48,-.4,Math.PI],['מרכז הטיילת',0,-.4,Math.PI],['הטיילת מזרח',48,-.4,Math.PI]]});
+  if(sc==='city3')buildCityBus('city3',{closed:false,P:laneLine(-54,54,1.5,6),lines:[{no:'4',c:'#7c3aed',n:'רחוב השוק'}],stops:[['השוק מערב',-40,-5.6,0],['כיכר השוק',0,-5.6,0],['השוק מזרח',40,-5.6,0]]});
+  if(SCENES[sc])addInter({scene:sc,x:()=>CBR&&CBR.sc===sc?CBR.bus.x:-999,z:()=>CBR&&CBR.sc===sc?CBR.bus.z:-999,r:4,mode:'walk',label:'🚌 לעלות לאוטובוס',when:()=>CBR&&CBR.state==='wait',act:()=>cbBoard()})}catch(e){console.warn(e)}}
+const _bc2o=buildCity2;buildCity2=function(){const r=_bc2o();smallBus('city2');return r};const _bc3o=buildCity3;buildCity3=function(){const r=_bc3o();smallBus('city3');return r};
+const _initO=V8.init;V8.init=function(){_initO();for(const sc of['city2','city3'])if(SCENES[sc]&&!CB[sc])smallBus(sc)};
+const _tickO=V8.tick;V8.tick=function(dt){_tickO(dt);try{cbTick(dt)}catch(e){console.warn(e)}};
+/* transit app: show the bus lines of the city you are in */
+const _taO=transitApp;transitApp=function(body){const sc=cur?cur.name:'out';if(sc==='out'||!CB[sc]||T_TAB!=='bus')return _taO(body);const C=CB[sc];
+  const B=body(`<div class="jbtabs"><button data-tt="bus" class="on">אוטובוסים</button><button data-tt="train">רכבות</button><button data-tt="plan">תכנון מסלול</button></div><div class="prow">קווים ב${esc(cityName(sc))} · ₪6 ברב-קו או ₪8 באשראי במתקף</div>
+   ${C.lines.map(l=>`<div class="tline"><div class="tno" style="background:${l.c}">${l.no}</div><div style="min-width:0"><b>${esc(l.n)}</b><small>${C.stops.map(s=>esc(s.n)).join(' ← ')}</small></div></div>`).join('')}
+   ${C.stops.map((s,i)=>`<div class="prow"><span>🚏 ${esc(s.n)}</span><button class="pbtn" data-cs="${i}">${Math.round(Math.hypot(s.x-player.x,s.z-player.z))} מ׳ · ניווט</button></div>`).join('')}`);
+  B.querySelectorAll('[data-tt]').forEach(b=>b.addEventListener('click',()=>{T_TAB=b.dataset.tt;openApp('transit')}));
+  B.querySelectorAll('[data-cs]').forEach(b=>b.addEventListener('click',()=>{const s=C.stops[+b.dataset.cs];setObj('🚏 תחנה · '+s.n,{scene:sc,x:s.x,z:s.z});$('#phone').hidden=true}))};
+/* --- jobs follow your home city --- */
+function homeCity(){return G.house&&G.house.city||'out'}
+function jbCities(id){const h=homeCity();return `<div class="jbcity"><button data-jcity="${h}" class="${id===h?'on':''}">🏠 ליד הבית · ${esc(cityName(h))}</button>${cur&&cur.name!==h&&MAPD[cur.name]&&WORLD.some(c=>c.id===cur.name)?`<button data-jcity="${cur.name}" class="${id===cur.name?'on':''}">📍 כאן · ${esc(cityName(cur.name))}</button>`:''}
+  <select data-jsel>${WORLD.map(c=>`<option value="${c.id}" ${c.id===id?'selected':''}>${esc(c.n)}</option>`).join('')}</select></div>${id!==h?`<p class="jbfar">🚆 ${esc(cityName(id))} רחוקה מהבית שלך ב${esc(cityName(h))}. כל יום תצטרך/י לנסוע ברכבת לעבודה.</p>`:''}`}
+let JBDELEG=false;function jbDeleg(){if(JBDELEG)return;JBDELEG=true;const s=$('#sheet');s.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-jcity]');if(b){JBF.cat='all';jobBoard(b.dataset.jcity)}});s.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('[data-jsel]')){JBF.cat='all';jobBoard(e.target.value)}})}
+const _jbO=jobBoard;jobBoard=function(id){jbDeleg();return _jbO(id)};
+const _ucO=updateCamera;updateCamera=function(dt){if(player.mode==='ride'&&CBR&&CBR.state==='ride'){const b=CBR.bus,cs=Math.cos(b.yaw),sn=Math.sin(b.yaw);camera.position.set(b.x-.7*cs+1.2*sn,2.25+Math.sin(clock*7)*.015,b.z+.7*sn+1.2*cs);camera.lookAt(b.x+sn*25-cs*6,1.6,b.z+cs*25+sn*6);setNear(.05);if(cur.sky)cur.sky.position.copy(camera.position);return}return _ucO(dt)};
+const _rlO=rentListing;rentListing=async function(l){const before=G.house&&G.house.lid;await _rlO(l);if(G.house&&G.house.lid===l.id&&before!==l.id&&!(G.job==='gen'&&G.gen&&G.gen.city===l.city)){player.lock=true;const k=await say('המתווך/ת',`עכשיו כשאת/ה גר/ה ב${l.cityN}, רוצה לראות משרות קרובות לבית?`,['כן, להראות משרות','אחר כך']);player.lock=false;if(k===0)jobBoard(l.city)}};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
