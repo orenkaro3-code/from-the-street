@@ -544,7 +544,7 @@ function buildOutdoor(){
   // reserved rects (no generic buildings)
   const RES=[[-108,-92,110,140],[-94,-66,30,62],[46,114,26,94],[44,102,-130,-70],[-70,-54,108,118],[-33,33,28,48],[-112,-48,-132,-68],[46,114,108,140],[-60,-50,26,34],[44,54,-130,-120],[-15,-5,-52,-46],[-30,-20,106,112],[25,35,40,50],[-33,33,-8,12],[-17,17,-94,-68]];
   const rects=[];
-  const blocksX=[[-175,XS[0]-10],[XS[0]+10,XS[1]-10],[XS[1]+10,XS[2]-10],[XS[2]+10,XS[3]-10],[XS[3]+10,175]];
+  const blocksX=[[-131,XS[0]-10],[XS[0]+10,XS[1]-10],[XS[1]+10,XS[2]-10],[XS[2]+10,XS[3]-10],[XS[3]+10,175]];
   const blocksZ=[[-195,ZS[0]-10],[ZS[0]+10,ZS[1]-10],[ZS[1]+10,ZS[2]-10],[ZS[2]+10,ZS[3]-10],[ZS[3]+10,150]];
   for(const bx of blocksX)for(const bz of blocksZ){
     for(let x=bx[0];x<bx[1]-6;x+=17)for(let z=bz[0];z<bz[1]-6;z+=17){
@@ -3555,6 +3555,74 @@ const _bcbR=buildCityBus;buildCityBus=function(sc,cfg){const def=WORLD.find(c=>c
     const g=lightStop(n,ls.join(' · '));g.position.set(x,0,z);g.rotation.y=yaw;C.R.s.add(g);const id=addInter({scene:sc,x,z,r:2.6,mode:'walk',label:'🚏 לחכות לאוטובוס · '+n,when:()=>!CBR&&!BUSARR,act:()=>cbWait(sc,st)});C.ids.push(id);if(C.R.isGen&&C.R.inters)C.R.inters.push(id);
     const md=MAPD[sc];if(md)md.pois.push({n:'תחנה · '+n,x,z,c:'#0f5132',ic:'🚏',small:1,cbus:1})}};
 const _tickR=V8.tick;V8.tick=function(dt){_tickR(dt);MYCAR._t=(MYCAR._t||0)-dt;if(MYCAR._t<=0){MYCAR._t=1.5;try{ensureMyCar()}catch(e){console.warn(e)}}};
+
+/* ====================== V8 PART S: Neve-Or downtown — city hall, realty, school, hospital, dating, cinema, mall, square, park, homes, buses ====================== */
+const NO={def:{id:'out',n:'נווה-אור',th:{acc:'#0ea5e9',fac:0xdfe5ea,h:[12,40]}},homes:[],ready:false};
+function noPlane(S,w,d,x,z,y,col,t,rx,ry){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshStandardMaterial({color:col,map:t?(()=>{const c=t.clone();c.needsUpdate=true;c.wrapS=c.wrapT=THREE.RepeatWrapping;c.repeat.set(rx||1,ry||1);return c})():null,roughness:.95}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;S.add(m);return m}
+function noBld(R,x,z,w,d,h,col,name,bg,door,face){const S=R.s;const fm=new THREE.MeshStandardMaterial({color:col||0xffffff,map:(()=>{const c=facadeTex.clone();c.needsUpdate=true;c.wrapS=c.wrapT=THREE.RepeatWrapping;c.repeat.set(Math.max(1,w/8),Math.max(1,h/6));return c})(),roughness:.8,emissive:0xffc66e,emissiveMap:litTex,emissiveIntensity:.15});
+  const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),fm);b.position.set(x,h/2,z);b.castShadow=b.receiveShadow=true;S.add(b);add(S,box(w+.4,.5,d+.4,0x64748b),x,h+.25,z);R.cols.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2});(R.noMats=R.noMats||[]).push(fm);
+  if(door){const yaw=Math.atan2(face[0],face[1]);const dr=box(2.6,3,.25,M(0x1c2b38,{metalness:.6,roughness:.2,emissive:0x2a4c66,emissiveIntensity:.4}));dr.position.set(door.x,1.5,door.z);dr.rotation.y=yaw;S.add(dr);
+    if(name){const sg=sign(name.split(' · '),Math.min(12,w*.85),1.9,{bg:bg||'#1e3a8a',size:84,w:768,h:170});sg.position.set(door.x+face[0]*.2,5.2,door.z+face[1]*.2);sg.rotation.y=yaw;S.add(sg)}}return b}
+function buildNeveOrDowntown(){const R=OUT;if(!R||NO.ready)return;NO.ready=true;const S=R.s;R.bounds.x0=-292;const MD=MAPD.out;MD.b.x0=-300;
+  // roads: Allenby + Sea Blvd extended west, new avenue
+  const road=(w,d,x,z)=>{noPlane(S,w,d,x,z,.02,0x9a9da2,asphaltTex,Math.max(1,w/14),Math.max(1,d/14));noPlane(S,w+(w>d?0:6),d+(w>d?6:0),x,z,.012,0xb8b2a6,tileTex,Math.max(1,w/6),Math.max(1,d/6))};
+  road(170,14,-205,20);road(170,14,-205,-60);road(14,176,-210,-22);
+  MD.roads.push({x1:-127,z1:20,x2:-290,z2:20,w:14,n:'רחוב אלנבי'},{x1:-127,z1:-60,x2:-290,z2:-60,w:14,n:'שדרות הים'},{x1:-210,z1:-110,x2:-210,z2:66,w:14,n:'שדרות נווה-אור'});
+  for(let x=-280;x<-130;x+=6){for(const z of[20,-60]){const ln=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.22),M(0xe8e2c8));ln.rotation.x=-Math.PI/2;ln.position.set(x,.03,z);S.add(ln)}}
+  // ---- main square: כיכר נווה-אור
+  const stone=ctexC('PAVE',128,128,(g,w,h)=>{g.fillStyle='#d9cfbd';g.fillRect(0,0,w,h);for(let y=0;y<h;y+=16)for(let x=(y/16%2)*16;x<w;x+=32){g.fillStyle=`hsl(36,${18+Math.random()*10}%,${72+Math.random()*10}%)`;g.fillRect(x+1,y+1,30,14)}});
+  noPlane(S,62,62,-168,-21,.018,0xffffff,stone,16,16);
+  {const f=G_();add(f,_cyl(5,5.3,.7,M(0xe7e0d2,{roughness:.6}),36),0,.35);add(f,new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.6,.1,36),new THREE.MeshStandardMaterial({color:0x3b8fc2,roughness:.08,metalness:.3,transparent:true,opacity:.88})),0,.62);add(f,_cyl(.7,1,1.6,M(0xe7e0d2),18),0,1.2);add(f,_cyl(1.7,1.4,.3,M(0xe7e0d2),22),0,2.1);f.position.set(-168,0,-21);castAll(f);S.add(f);R.cols.push({x0:-173.2,x1:-162.8,z0:-26.2,z1:-15.8})}
+  const sq=sign(['כיכר נווה-אור','העיר הראשונה במשחק'],7,1.6,{bg:'#0ea5e9',size:84,w:768,h:170});sq.position.set(-168,3.6,-15.6);S.add(sq);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const n=npc('out',pick(PED),-168+Math.cos(a)*11,-21+Math.sin(a)*11,0);if(i%2){n.walk={a:{x:n.x,z:n.z},b:{x:-168+rand(-25,25),z:-21+rand(-25,25)},to:1,sp:1.1};n.target={...n.walk.b};n.speed=1.1}else{n.h.sit=true;n.solid=false}}
+  if(!ATTR.out)attrReset('out');[['wheel',-150,-44],['cinema',-187,-44],['music',-160,-1],['food',-182,-1],['lotto',-145,-6],['hoop',-192,-24]].forEach(([k,x,z])=>{try{attrBuild(R,'out',k,x,z,'נווה-אור')}catch(e){console.warn(e)}});attrPois('out');
+  // ---- civic square: city hall, realty, dating, school, hospital
+  noPlane(S,24,54,-254,-14,.018,0xffffff,stone,6,14);
+  noBld(R,-254,-47,28,10,16,0xe8e2d4,'עיריית נווה-אור · לשכת התעסוקה','#1e3a8a',{x:-254,z:-41.9},[0,1]);for(let i=0;i<6;i++){const c=_cyl(.4,.45,6,M(0xf5f1e8),14);c.position.set(-264+i*4,3,-41.4);castAll(c);S.add(c)}
+  noBld(R,-274,-20,14,14,11,0xdedbd2,'נדל״ן נווה-אור · דירות להשכרה','#0f766e',{x:-266.9,z:-20},[1,0]);
+  noBld(R,-274,2,14,12,11,0xf3d9e0,'לב אל לב · מכון היכרויות','#db2777',{x:-266.9,z:2},[1,0]);
+  noBld(R,-234,-20,14,14,9,0xf2e3c4,'בית ספר וגן ילדים','#ca8a04',{x:-241.1,z:-20},[-1,0]);
+  noBld(R,-234,2,14,12,18,0xf1f5f9,'מרכז רפואי נווה-אור','#dc2626',{x:-241.1,z:2},[-1,0]);
+  const AI=o=>addInter(Object.assign({scene:'out',mode:'walk'},o));
+  AI({x:-254,z:-39.6,r:2.8,label:'🏛 עיריית נווה-אור · לשכת התעסוקה',act:()=>jobBoard('out')});
+  AI({x:-265.4,z:-20,r:2.6,label:'🔑 משרד תיווך · דירות להשכרה',act:()=>V8.realEstate('out')});
+  AI({x:-265.4,z:2,r:2.6,label:'❤ לב אל לב · מכון היכרויות',act:()=>V8.dating('out')});
+  AI({x:-242.6,z:-20,r:2.6,label:()=>V8.isVoteDay&&V8.isVoteDay()?'🗳 להצביע בקלפי (בית הספר)':'🏫 בית ספר וגן · רישום ילדים',act:()=>V8.school('out')});
+  AI({x:-242.6,z:2,r:2.6,label:'✚ מרכז רפואי · רופא משפחה',act:()=>V8.hospital('out')});
+  for(const [x,z] of[[-254,-30],[-254,-14],[-254,2]]){const t=G_();add(t,_cyl(.16,.24,2.6,0x5b4632,6),0,1.3);add(t,_sph(1.4,0x2f6a3a,9,7),0,3.3);t.position.set(x,0,z);castAll(t);S.add(t)}
+  // ---- mall
+  noBld(R,-170,-89,44,26,16,0xe5e7eb,'קניון נווה-אור · אופנה · אוכל · משחקייה','#0ea5e9',{x:-170,z:-75.9},[0,1]);
+  const NODEF={id:'out',n:'נווה-אור',th:{acc:'#0ea5e9'}};AI({x:-170,z:-74,r:3,label:'🏬 להיכנס לקניון נווה-אור',act:()=>{const first=!SCENES.mall_out;if(first){buildMall(NODEF);const ex=INTER.find(o=>o.scene==='mall_out'&&o.label==='לצאת מהקניון');if(ex)ex.act=async()=>{player.lock=true;await fade(true);goScene('out',-170,-72.5,0);await fade(false);player.lock=false}}
+    player.lock=true;fade(true).then(()=>{goScene('mall_out',0,16.5,Math.PI);return fade(false)}).then(()=>{player.lock=false;toast('ברוך/ה הבא/ה לקניון נווה-אור','good')})}});
+  // ---- park
+  noPlane(S,60,30,-254,-88,.02,0x4d7c0f);{const pond=new THREE.Mesh(new THREE.CircleGeometry(5,28),M(0x38bdf8,{roughness:.1,metalness:.3}));pond.rotation.x=-Math.PI/2;pond.position.set(-262,.05,-88);S.add(pond);R.cols.push({x0:-267,x1:-257,z0:-93,z1:-83})}
+  for(let i=0;i<12;i++){const t=G_();add(t,_cyl(.15,.22,2.6,0x5b4632,6),0,1.3);add(t,_sph(1.5,pick([0x2f6a3a,0x3a7a44,0x166534]),9,7),0,3.4);t.position.set(-280+(i%6)*10,0,i<6?-100:-76);castAll(t);S.add(t)}
+  for(let i=0;i<4;i++){const kid=npc('out',pick(PED),-240+rand(-4,4),-88+rand(-3,3),0);kid.h.g.scale.setScalar(.6);kid.walk={a:{x:-246,z:-90},b:{x:-232,z:-86},to:1,sp:2};kid.target={x:-232,z:-86};kid.speed=2}
+  AI({x:-246,z:-88,r:3,label:'🧺 פיקניק בפארק נווה-אור',act:async()=>{player.lock=true;await fade(true);G.clockMin+=60;G.energy=Math.min(100,G.energy+12);G.fam.happy=Math.min(100,(G.fam.happy||70)+(G.fam.spouse?8:2));hud();save();await fade(false);toast('🧺 פיקניק נעים · +12 אנרגיה','good');if(typeof stamp==='function')stamp('picnic');player.lock=false}});
+  // ---- homes for rent
+  [[-182,45,26,'studio'],[-151,45,22,'three'],[-270,45,24,'two'],[-238,45,22,'pent']].forEach(([x,z,w,t],i)=>{const h=14+i*6;noBld(R,x,z,w,16,t==='pent'?34:h,0xefe7da,null,null,{x,z:36.9},[0,-1]);
+    const id='out_n'+i,street=['שדרות נווה-אור 3','שדרות נווה-אור 12','רחוב העצמאות 7','רחוב העצמאות 21'][i];NO.homes.push({id,city:'out',type:t,x,z,w,d:16,h,door:{x,z:36.9},fx:0,fz:-1,street});
+    const st=sign([street],4.6,.7,{bg:'#f8fafc',fg:'#1e3a8a',size:90,w:512,h:72});st.position.set(x+3.4,2.6,36.8);st.rotation.y=Math.PI;S.add(st);
+    AI({x,z:35.4,r:2.2,label:'להיכנס הביתה',when:()=>G.house&&G.house.lid===id,act:()=>V8.goHomeIn()})});
+  // ---- skyline towers (downtown)
+  for(let i=0;i<9;i++){const x=-285+i*17.5,z=78+(i%2)*14;noBld(R,x,z,13,12,26+((i*37)%40),pick([0xdfe5ea,0xffffff,0xe5e7eb]),null)}
+  // ---- bus line 9 + 10 serving downtown
+  try{buildCityBus('out',{lines:[{no:'9',c:'#0ea5e9',dir:1,closed:false,P:laneLine(-286,-100,23.4,6),n:'אלנבי · העיר הישנה ↔ מרכז נווה-אור'},{no:'10',c:'#f97316',dir:1,closed:false,P:(()=>{const P=[];for(let z=-104;z<=58;z+=6)P.push({x:-206.6,z});return P})(),n:'שדרות נווה-אור · הקניון ↔ הבתים'}],
+    stops:[['אלנבי · העיר הישנה',-100,28.6,Math.PI],['כיכר נווה-אור',-168,28.6,Math.PI],['השדרה',-196,28.6,Math.PI],['העירייה והתיווך',-254,28.6,Math.PI],['🏬 הקניון',-201.4,-80,Math.PI/2],['🌳 הפארק',-201.4,-40,Math.PI/2],['🏠 הבתים החדשים',-201.4,48,Math.PI/2]]});
+    addInter({scene:'out',x:()=>CBR&&CBR.sc==='out'?CBR.bus.x:-999,z:()=>CBR&&CBR.sc==='out'?CBR.bus.z:-999,r:4.5,mode:'walk',label:'🚌 לעלות לאוטובוס',when:()=>CBR&&CBR.state==='wait',act:()=>cbBoard()})}catch(e){console.warn(e)}
+  // ---- map points
+  [['עיריית נווה-אור','#1e3a8a','🏛',-254,-41],['נדל״ן נווה-אור','#0f766e','🔑',-267,-20],['מכון היכרויות','#db2777','❤',-267,2],['בית ספר','#ca8a04','🏫',-241,-20],['מרכז רפואי','#dc2626','✚',-241,2],['קניון נווה-אור','#0ea5e9','🏬',-170,-75],['כיכר נווה-אור','#0ea5e9','★',-168,-21],['פארק נווה-אור','#16a34a','🌳',-254,-88]].forEach(([n,c,ic,x,z])=>MD.pois.push({n,x,z,c,ic,big:1}));
+  castAll(S)}
+/* Neve-Or homes in the realty listings; leaving/entering those homes; car spot */
+const _alS=allListings;allListings=function(){const o=_alS();NO.homes.forEach(h=>o.push(Object.assign({},h,{cityN:'נווה-אור',rent:HTYPES[h.type].rent+(seedOf(h.id)%5)*50})));return o};
+const _ghS=goHomeOut;goHomeOut=function(){const h=G.house;if(h&&h.city==='out'&&h.door&&/^out_n/.test(h.lid||'')){ensureV8State();goScene('out',h.door.x,h.door.z-1.8,Math.PI);return}return _ghS()};
+const _hcS=homeCarSpot;homeCarSpot=function(){const h=G.house;if(h&&h.city==='out'&&h.door&&/^out_n/.test(h.lid||''))return{sc:'out',x:h.door.x+5,z:h.door.z-3.6,yaw:Math.PI/2};return _hcS()};
+const _initS=V8.init;V8.init=function(){_initS();try{buildNeveOrDowntown()}catch(e){console.warn('downtown',e)}};
+/* transit app in Neve-Or also lists the new downtown lines */
+const _taS=transitApp;transitApp=function(body){_taS(body);if(curCity()!=='out'||T_TAB!=='bus'||!CB.out)return;const out=$('#pview').querySelector('#ttBody');if(!out)return;const C=CB.out;const d=document.createElement('div');
+  d.innerHTML=`<div class="prow"><b>🚌 קווים למרכז נווה-אור</b></div>`+C.lines.map(l=>`<div class="tline"><div class="tno" style="background:${l.c}">${l.no}</div><div style="min-width:0"><b>${esc(l.n)}</b><small>${C.stops.filter(s=>s.li[l.no]!=null).map(s=>esc(s.n)).join(' ← ')}</small></div></div>`).join('')
+   +C.stops.map((s,i)=>`<div class="prow"><span>🚏 ${esc(s.n)}</span><button class="pbtn" data-ns="${i}">${Math.round(Math.hypot(s.x-player.x,s.z-player.z))} מ׳ · ניווט</button></div>`).join('');out.appendChild(d);
+  d.querySelectorAll('[data-ns]').forEach(b=>b.addEventListener('click',()=>{const s=C.stops[+b.dataset.ns];if(cur.name!=='out'){toast('צא/י קודם מהבניין');return}setObj('🚏 '+s.n,{scene:'out',x:s.x,z:s.z});$('#phone').hidden=true}))};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
