@@ -9,6 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;800&family=IBM+Plex+Mono:wght@500;600&family=Secular+One&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FXAAShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <style>
 /* Layout: full-bleed 3D game stage with HUD layers (objective, phone, nav app, dialog, computer). Single dark UI look by design. */
 :root{
@@ -3052,6 +3059,104 @@ const _appL=V8.app;V8.app=function(id,body){if(id!=='acct'){_appL(id,body);retur
   if(ACC&&G.friends.length)api('profile',{users:G.friends}).then(r=>{const L=B.querySelector('#paList');if(!L)return;if(!r.ok){L.innerHTML='<div class="prow">אין חיבור לשרת</div>';return}
     L.innerHTML=r.profiles.map(p=>p.missing?`<div class="prow"><span dir="ltr">${esc(p.user)}</span><b>לא נמצא</b></div>`:`<div class="frow"><b>${esc(p.name||p.user)} <small dir="ltr">@${esc(p.user)}</small></b><small>יום ${p.day} · ${fmt(p.money)} · ${esc(p.job||'מחפש/ת עבודה')} · ${esc(p.city||'')}${p.spouse?' · נשוי/אה ל'+esc(p.spouse):''}${p.kids?' · '+p.kids+' ילדים':''}</small></div>`).join('')})};
 
+/* ====================== V8 PART M: pro visuals — skinned characters, curved cars, bloom/FXAA/grading, graphics setting ====================== */
+/* ---------- skinned humanoid: one smooth mesh deformed by a skeleton (like game-engine characters) ---------- */
+const SKIN_MAT=new THREE.MeshStandardMaterial({vertexColors:true,skinning:true,roughness:.78,metalness:0});
+const SKGEO={};
+const sstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
+function bodyGeo(o){const key=JSON.stringify([o.skin,o.coat,o.shirt,o.pants,o.shoes,!!o.fem,!!o.skirt,!!o.long_sleeve]);if(SKGEO[key])return SKGEO[key];
+  const skinC=o.skin||0xc9956b,top=o.coat||o.shirt||0x777777,pantsC=o.pants||0x333333,fem=!!o.fem,shoeC=o.shoes||0x222222,legC=o.skirt?skinC:pantsC,foreC=o.coat||o.long_sleeve?top:skinC;
+  const P=[],N=[],C=[],SI=[],SW=[],IX=[];let vo=0;
+  // bones: 0 hips,1 hipL,2 kneeL,3 footL,4 hipR,5 kneeR,6 footR,7 chest,8 shL,9 elbL,10 shR,11 elbR,12 head
+  const piece=(geo,color,wfn)=>{geo=geo.index?geo:geo;const pa=geo.attributes.position,na=geo.attributes.normal,col=new THREE.Color(color);
+    for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i);P.push(x,y,z);N.push(na.getX(i),na.getY(i),na.getZ(i));C.push(col.r,col.g,col.b);const w=wfn(x,y,z);SI.push(w[0],w[2]||0,0,0);SW.push(w[1],w[3]||0,0,0)}
+    const ix=geo.index;if(ix)for(let i=0;i<ix.count;i++)IX.push(ix.getX(i)+vo);else for(let i=0;i<pa.count;i++)IX.push(i+vo);vo+=pa.count};
+  // tube along -y from yTop to yBot at (x,z); own bone, blend to up/down bones near the ends
+  const tube=(x,yTop,yBot,rT,rB,color,own,up,down,sz,bU,bD)=>{const L=yTop-yBot;const g=new THREE.CylinderGeometry(rT,rB,L,14,8,true);g.scale(1,1,sz||1);g.translate(x,(yTop+yBot)/2,0);
+    piece(g,color,(px,py)=>{const t=(yTop-py)/L;const wu=up!=null?.5*(1-sstep(0,bU||.25,t)):0,wd=down!=null?.5*sstep(1-(bD||.25),1,t):0;
+      if(wu>=wd)return wu>0?[own,1-wu,up,wu]:[own,1];return[own,1-wd,down,wd]})};
+  const blob=(geo,color,bone)=>piece(geo,color,()=>[bone,1]);
+  const sph=(r,x,y,z,sx,sy,szz)=>{const g=new THREE.SphereGeometry(r,14,10);g.scale(sx||1,sy||1,szz||1);g.translate(x,y,z);return g};
+  for(const s of[-1,1]){const hp=s<0?1:4,kn=hp+1,ft=hp+2,x=s*.115;
+    tube(x,.9,.44,.11,.084,legC,hp,0,kn,1,.18,.22);tube(x,.44,.05,.083,.058,legC,kn,hp,ft,1,.2,.18);blob(sph(.085,x,.44,0),legC,kn);
+    const sh=new THREE.BoxGeometry(.17,.09,.28);sh.translate(x,.045,.05);blob(sh,shoeC,ft);blob(sph(.087,x,.05,.16,1,.55,1.1),shoeC,ft)}
+  tube(0,1.08,.8,.25,.235,pantsC,0,7,null,.66,.35);blob(sph(.24,0,.84,0,1,.45,.66),pantsC,0);
+  tube(0,1.66,1.0,fem?.25:.29,fem?.22:.25,top,7,null,0,.62,0,.3);blob(new THREE.SphereGeometry(fem?.25:.29,16,8,0,Math.PI*2,0,Math.PI/2).scale(1,.32,.62).translate(0,1.66,0),top,7);
+  if(fem)blob(sph(.1,0,1.46,.12,1.9,.75,.7),top,7);
+  tube(0,1.8,1.64,.065,.075,skinC,7,12,null,1,.6);
+  for(const s of[-1,1]){const sh=s<0?8:10,el=sh+1,x=s*(fem?.32:.36);
+    tube(x,1.64,1.31,.078,.064,top,sh,7,el,1,.12,.22);blob(sph(.08,x,1.63,0),top,sh);tube(x,1.31,1.04,.062,.05,foreC,el,sh,null,1,.22);blob(sph(.064,x,1.31,0),foreC,el);
+    blob(sph(.066,x,.99,0,.85,1.15,.7),skinC,el)}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(P,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(C,3));geo.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(SI,4));geo.setAttribute('skinWeight',new THREE.Float32BufferAttribute(SW,4));geo.setIndex(IX);geo.computeBoundingSphere();
+  return SKGEO[key]=geo}
+let CHARS='new';try{CHARS=localStorage.getItem('fts_chars')||'new'}catch(e){}
+const _humanJ=human;
+human=function(o){if(CHARS==='classic')return _humanJ(o);
+  const g=new THREE.Group(),inner=new THREE.Group();g.add(inner);
+  const skinC=o.skin||0xc9956b,skin=M(skinC,{roughness:.7}),top=o.coat||o.shirt||0x777777,fem=!!o.fem,hairC=o.hair||0x2b2118;
+  const B=[];const bone=(parent,x,y)=>{const b=new THREE.Bone();b.position.set(x,y,0);if(parent)parent.add(b);B.push(b);return b};
+  const hips=bone(null,0,.9,0);
+  const hipL=bone(hips,-.115,-.02),kneeL=bone(hipL,0,-.44),footL=bone(kneeL,0,-.42);
+  const hipR=bone(hips,.115,-.02),kneeR=bone(hipR,0,-.44),footR=bone(kneeR,0,-.42);
+  const chest=bone(hips,0,.12);const sx=fem?.32:.36;
+  const shL=bone(chest,-sx,.6),elbL=bone(shL,0,-.31),shR=bone(chest,sx,.6),elbR=bone(shR,0,-.31);
+  const head=bone(chest,0,.93);
+  const mesh=new THREE.SkinnedMesh(bodyGeo(o),SKIN_MAT);mesh.add(hips);inner.add(mesh);mesh.castShadow=true;mesh.frustumCulled=false;
+  g.updateMatrixWorld(true);mesh.bind(new THREE.Skeleton(B));
+  shL.rotation.z=-.05;shR.rotation.z=.05;
+  if(o.skirt){const sk=_cyl(.25,.38,.52,o.skirt,16);sk.position.y=-.06;hips.add(sk)}
+  if(o.vest){const v=_cyl(.31,.27,.56,o.vest,16);v.scale.z=.66;v.position.y=.31;chest.add(v);for(const yy of[.2,.42]){const s1=_cyl(.315,.3,.06,M(0xe8f0d0,{emissive:0x444433}),16);s1.scale.z=.67;s1.position.y=yy;chest.add(s1)}}
+  if(o.badge){const b=box(.1,.14,.02,0xffffff);b.position.set(.13,.42,.18);chest.add(b)}
+  if(o.apron){const a=box(.46,.72,.02,0xe8e2d0);a.position.set(0,.1,.17);chest.add(a)}
+  const hm=_sph(.185,skin,18,14);hm.scale.set(.93,1.1,1);head.add(hm);const jaw=_sph(.15,skin,12,8);jaw.scale.set(.9,.7,.95);jaw.position.set(0,-.09,.02);head.add(jaw);
+  const lids=[];for(const s of[-1,1]){const w=_sph(.034,0xffffff,8,6);w.scale.z=.45;w.position.set(s*.065,.03,.158);head.add(w);const e=_sph(.019,0x2b1a10,8,6);e.position.set(s*.065,.03,.172);head.add(e);
+    const lid=box(.075,.04,.02,skinC);lid.position.set(s*.065,.03,.176);lid.scale.y=.05;head.add(lid);lids.push(lid);
+    const br=box(.075,.016,.02,hairC);br.position.set(s*.068,.085,.165);br.rotation.z=s*-.08;head.add(br);const ear=_sph(.042,skin,8,6);ear.scale.set(.45,1,.8);ear.position.set(s*.172,0,0);head.add(ear)}
+  const nose=_sph(.03,skin,8,6);nose.scale.set(.9,1.3,1.1);nose.position.set(0,-.02,.18);head.add(nose);const mouth=box(.065,.013,.02,fem?0xb4505a:0x8a4a44);mouth.position.set(0,-.085,.163);head.add(mouth);
+  if(o.hood){const hd=new THREE.Mesh(new THREE.SphereGeometry(.23,14,10,0,Math.PI*2,0,Math.PI*.62),M(o.hood));hd.position.y=.02;hd.rotation.x=-.25;head.add(hd)}
+  else if(o.helmet){const hmt=new THREE.Mesh(new THREE.SphereGeometry(.22,14,8,0,Math.PI*2,0,Math.PI/2),M(o.helmet));hmt.position.y=.05;head.add(hmt);const brm=_cyl(.27,.27,.03,o.helmet,18);brm.position.y=.05;head.add(brm)}
+  else if(o.cap){const cp=_cyl(.2,.205,.11,o.cap,16);cp.position.y=.15;head.add(cp);const vz=box(.22,.025,.15,o.cap);vz.position.set(0,.11,.2);head.add(vz)}
+  else{const hair=new THREE.Mesh(new THREE.SphereGeometry(.2,16,10,0,Math.PI*2,0,Math.PI*.48),M(hairC,{roughness:.9}));hair.scale.set(.97,1.05,1.04);hair.position.set(0,.02,-.01);head.add(hair);
+    if(o.long||fem){const bk=box(.34,.42,.09,hairC);bk.position.set(0,-.13,-.14);head.add(bk);for(const s of[-1,1]){const sd=box(.06,.3,.16,hairC);sd.position.set(s*.17,-.08,-.04);head.add(sd)}}}
+  if(o.beard){const b=_sph(.15,o.beard,10,8);b.scale.set(.95,.7,.75);b.position.set(0,-.11,.07);head.add(b)}
+  if(o.headset){const hs=new THREE.Mesh(new THREE.TorusGeometry(.21,.02,6,16,Math.PI),M(0x222222));hs.position.y=.02;head.add(hs);const mic=box(.03,.03,.18,0x222222);mic.position.set(-.17,-.08,.1);head.add(mic)}
+  if(o.glasses){for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.TorusGeometry(.04,.009,6,14),M(0x111111));l.position.set(s*.066,.03,.19);head.add(l)}const br=box(.04,.01,.01,0x111111);br.position.set(0,.035,.19);head.add(br)}
+  head.traverse(m=>{if(m.isMesh)m.castShadow=true});g.add(blob(1.3));
+  return{g,inner,hips,chest,legL:hipL,legR:hipR,kneeL,kneeR,footL,footR,armL:shL,armR:shR,elbL,elbR,torso:mesh,head,lids,phase:Math.random()*6,br:Math.random()*6,blink:2+Math.random()*3,wave:0,skinned:true}};
+/* ---------- curved car bodies (extruded side profile with bevels) ---------- */
+let CARGEO=null;
+function carGeos(){if(CARGEO)return CARGEO;const prof=(pts)=>{const s=new THREE.Shape();s.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)s.lineTo(pts[i][0],pts[i][1]);s.closePath();return s};
+  const ex=(shape,w,bev)=>{const g=new THREE.ExtrudeGeometry(shape,{depth:w,bevelEnabled:true,bevelThickness:bev,bevelSize:bev*.8,bevelSegments:3,curveSegments:4,steps:1});g.rotateY(-Math.PI/2);g.translate(w/2,0,0);g.computeVertexNormals();return g};
+  const body=ex(prof([[-1.98,.34],[1.98,.34],[2.04,.6],[1.94,.9],[1.0,1.06],[-1.66,1.08],[-2.0,.98],[-2.04,.6]]),1.66,.08);
+  const glass=ex(prof([[.98,1.04],[.26,1.6],[-.86,1.62],[-1.66,1.06]]),1.5,.05);
+  const roof=ex(prof([[.3,1.6],[.22,1.66],[-.86,1.68],[-.92,1.62]]),1.52,.04);
+  return CARGEO={body,glass,roof}}
+const GLASSM=new THREE.MeshStandardMaterial({color:0x0f1a24,roughness:.08,metalness:.85});
+const _veh0=vehicle;vehicle=function(kind,label,opt){const v=_veh0(kind,label,opt);if(kind==='car'){try{const G0=carGeos();const kids=v.g.children;const bodyM=kids[0].material;
+    for(let i=0;i<3;i++)kids[i].visible=false;const b=new THREE.Mesh(G0.body,bodyM);const gl=new THREE.Mesh(G0.glass,GLASSM);const rf=new THREE.Mesh(G0.roof,bodyM);for(const m of[b,gl,rf]){m.castShadow=true;m.receiveShadow=true;v.g.add(m)}
+    for(const k of kids)if(k.geometry&&k.geometry.parameters&&k.geometry.parameters.radiusTop===.42){const hub=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.32,12).rotateZ(Math.PI/2),M(0xc0c4c8,{metalness:.8,roughness:.3}));hub.position.copy(k.position);v.g.add(hub)}}catch(e){console.warn(e)}}return v};
+/* ---------- post-processing: bloom + colour grading + vignette + FXAA ---------- */
+let GFX='high';try{GFX=localStorage.getItem('fts_gfx')||(touch?'medium':'high')}catch(e){GFX=touch?'medium':'high'}
+let COMP=null,RPASS=null,FXAA=null,BLOOM=null;
+const GRADE={uniforms:{tDiffuse:{value:null},expo:{value:1.08},sat:{value:1.1},con:{value:1.06},vig:{value:.32},warm:{value:.02}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  fragmentShader:'uniform sampler2D tDiffuse;uniform float sat,con,vig,warm,expo;varying vec2 vUv;vec3 rrt(vec3 v){vec3 a=v*(v+0.0245786)-0.000090537;vec3 b=v*(0.983729*v+0.4329510)+0.238081;return a/b;}vec3 aces(vec3 c){const mat3 I=mat3(vec3(0.59719,0.07600,0.02840),vec3(0.35458,0.90834,0.13383),vec3(0.04823,0.01566,0.83777));const mat3 O=mat3(vec3(1.60475,-0.10208,-0.00327),vec3(-0.53108,1.10813,-0.07276),vec3(-0.07367,-0.00605,1.07602));c*=expo/0.6;c=I*c;c=rrt(c);c=O*c;return clamp(c,0.,1.);}vec3 srgb(vec3 c){return mix(c*12.92,pow(c,vec3(1./2.4))*1.055-0.055,step(vec3(0.0031308),c));}void main(){vec4 c=texture2D(tDiffuse,vUv);vec3 col=srgb(aces(c.rgb));float l=dot(col,vec3(.2126,.7152,.0722));col=mix(vec3(l),col,sat);col=(col-.5)*con+.5;col.r+=warm;col.b-=warm*.6;float d=distance(vUv,vec2(.5));col*=1.-vig*smoothstep(.35,.85,d);gl_FragColor=vec4(clamp(col,0.,1.),c.a);}'};
+function setupFX(){COMP=null;if(GFX==='low'||!THREE.EffectComposer||!THREE.UnrealBloomPass||!THREE.ShaderPass)return;try{const sz=renderer.getSize(new THREE.Vector2());
+    COMP=new THREE.EffectComposer(renderer);RPASS=new THREE.RenderPass(cur?cur.s:new THREE.Scene(),camera);COMP.addPass(RPASS);
+    BLOOM=new THREE.UnrealBloomPass(new THREE.Vector2(sz.x,sz.y),.42,.5,.82);if(GFX==='medium')BLOOM.resolution.set(sz.x/2,sz.y/2);COMP.addPass(BLOOM);
+    COMP.addPass(new THREE.ShaderPass(GRADE));if(THREE.FXAAShader&&GFX==='high'){FXAA=new THREE.ShaderPass(THREE.FXAAShader);COMP.addPass(FXAA)}else FXAA=null;fxSize()}catch(e){console.warn('fx',e);COMP=null}}
+function fxSize(){if(!COMP)return;const pr=renderer.getPixelRatio(),sz=renderer.getSize(new THREE.Vector2());COMP.setPixelRatio?COMP.setPixelRatio(pr):0;COMP.setSize(sz.x,sz.y);if(FXAA)FXAA.material.uniforms.resolution.value.set(1/(sz.x*pr),1/(sz.y*pr))}
+function renderFrame(){if(COMP&&cur){RPASS.scene=cur.s;RPASS.camera=camera;const sz=renderer.getSize(new THREE.Vector2());if(COMP._w!==sz.x||COMP._h!==sz.y){COMP._w=sz.x;COMP._h=sz.y;fxSize()}
+    if(BLOOM)BLOOM.strength=envName==='night'?.62:envName==='evening'?.5:.32;try{COMP.render();return}catch(e){console.warn(e);COMP=null}}renderer.render(cur.s,camera)}
+function applyGfx(){renderer.setPixelRatio(GFX==='low'?1:Math.min(GFX==='high'?2:1.5,window.devicePixelRatio||1));setupFX()}
+if(GFX==='low')renderer.shadowMap.enabled=false;
+function setGfx(q){GFX=q;try{localStorage.setItem('fts_gfx',q)}catch(e){}applyGfx();toast('גרפיקה: '+{high:'גבוהה ✨',medium:'בינונית',low:'נמוכה (מהיר)'}[q],'good')}
+const _oaM=openApp;openApp=function(id){_oaM(id);if(id==='set'){const v=$('#pview');const d=document.createElement('div');d.className='pbody';d.innerHTML=`<b>🎨 איכות גרפיקה</b><div class="jbtabs">${['high','medium','low'].map(q=>`<button data-gq="${q}" class="${GFX===q?'on':''}">${{high:'גבוהה',medium:'בינונית',low:'נמוכה'}[q]}</button>`).join('')}</div><small style="color:var(--muted)">גבוהה: זוהר, תאורה וצבעים קולנועיים. נמוכה: מהיר יותר בטלפון.</small><b>🧍 דמויות</b><div class="jbtabs"><button data-ch="new" class="${CHARS==='new'?'on':''}">חדשות (עור חלק)</button><button data-ch="classic" class="${CHARS==='classic'?'on':''}">קלאסיות</button></div><small style="color:var(--muted)">שינוי דמויות נכנס לתוקף אחרי טעינה מחדש.</small>`;v.appendChild(d);
+  d.querySelectorAll('[data-ch]').forEach(b=>b.addEventListener('click',()=>{CHARS=b.dataset.ch;try{localStorage.setItem('fts_chars',CHARS)}catch(e){}toast('נשמר · טוען מחדש...');setTimeout(()=>location.reload(),700)}));d.querySelectorAll('[data-gq]').forEach(b=>b.addEventListener('click',()=>{setGfx(b.dataset.gq);openApp('set')}))}};
+addEventListener('keydown',e=>{if((e.key==='g'||e.key==='G'||e.key==='ע')&&!dialogOpen&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA')setGfx(GFX==='high'?'medium':GFX==='medium'?'low':'high')});
+
+applyGfx();
+
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
   if(good)J.good++;let promo='';const tl=JOBS[G.job].titles;
@@ -3356,7 +3461,7 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;clock+=dt;
         const m=G.clockMin%1440,want=m<390?'night':m<480?'dawn':m<1020?'morning':m<1170?'evening':'night';if(want!==envName){envName=want;applyEnv()}
         if(G.workDone&&G.clockMin>=25*60&&!player.lock)sleepNow(true)}}
     hudT+=dt;if(hudT>.25){hudT=0;hud()}
-    renderer.render(cur.s,camera)}
+    renderFrame()}
   requestAnimationFrame(frame)}
 
 async function boot(){
