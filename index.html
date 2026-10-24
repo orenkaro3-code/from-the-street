@@ -278,6 +278,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+#skipBtn{white-space:nowrap}#skipDlg{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:rgba(0,0,0,.45)}.skipbox{background:#0f172a;border:1px solid var(--line);border-radius:16px;padding:18px;max-width:340px;margin:16px;display:flex;flex-direction:column;gap:8px;text-align:center}.skipbox b{font-size:19px}.skipbtns{display:flex;gap:8px;justify-content:center}
 .mqo{display:flex;flex-direction:column;gap:8px}.mqo .btn{text-align:start;white-space:normal}.mqo .btn.on{background:#0f766e}.mq-ok{background:#16a34a!important;color:#fff}.mq-bad{background:#dc2626!important;color:#fff}
 .mqgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;font-size:26px;text-align:center;background:#0b1220;border-radius:10px;padding:8px}.mqcode{font-family:var(--f-mono);font-size:32px;letter-spacing:4px;text-align:center;background:#0b1220;color:#67e8f9;border-radius:10px;padding:10px;direction:ltr}
 .vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.vitals div{background:#0b1220;border-radius:10px;padding:8px;display:flex;flex-direction:column;align-items:center;font-size:13px}.vitals b{font-family:var(--f-mono);font-size:22px;color:#67e8f9}
@@ -3623,6 +3624,24 @@ const _taS=transitApp;transitApp=function(body){_taS(body);if(curCity()!=='out'|
   d.innerHTML=`<div class="prow"><b>🚌 קווים למרכז נווה-אור</b></div>`+C.lines.map(l=>`<div class="tline"><div class="tno" style="background:${l.c}">${l.no}</div><div style="min-width:0"><b>${esc(l.n)}</b><small>${C.stops.filter(s=>s.li[l.no]!=null).map(s=>esc(s.n)).join(' ← ')}</small></div></div>`).join('')
    +C.stops.map((s,i)=>`<div class="prow"><span>🚏 ${esc(s.n)}</span><button class="pbtn" data-ns="${i}">${Math.round(Math.hypot(s.x-player.x,s.z-player.z))} מ׳ · ניווט</button></div>`).join('');out.appendChild(d);
   d.querySelectorAll('[data-ns]').forEach(b=>b.addEventListener('click',()=>{const s=C.stops[+b.dataset.ns];if(cur.name!=='out'){toast('צא/י קודם מהבניין');return}setObj('🚏 '+s.n,{scene:'out',x:s.x,z:s.z});$('#phone').hidden=true}))};
+
+/* ====================== V8 PART T: skip a hard day (or the hard beginning) ====================== */
+let BOOTMAX=0;
+const _titleT=title;title=function(){if(!BOOTMAX)BOOTMAX=INTER.reduce((m,o)=>Math.max(m,o.id||0),0);return _titleT.apply(this,arguments)};
+function skipUI(){let b=$('#skipBtn');if(!b){b=document.createElement('button');b.id='skipBtn';b.className='hudbtn';b.textContent='⏭ דלג על היום';b.setAttribute('aria-label','לדלג על היום');const t=$('#top');if(!t)return;t.appendChild(b);b.addEventListener('click',askSkip)}
+  b.hidden=!G.stage||!$('#ov').hidden&&!WK;b.textContent=G.stage&&G.stage!=='life'?'⏭ דלג על ההתחלה':'⏭ דלג על היום'}
+function askSkip(){if($('#skipDlg'))return;const story=G.stage!=='life';const d=document.createElement('div');d.id='skipDlg';
+  d.innerHTML=`<div class="skipbox"><b>${story?'⏭ לדלג על ההתחלה הקשה?':'⏭ לדלג על היום הזה?'}</b><p>${story?'תדלג/י ישר לחיים החדשים: עבודה בחברת החשמל, דירה, טלפון ו-₪300 בכיס.':'היום נגמר עכשיו בלי משכורת, ומתעוררים מחר בבוקר בבית עם אנרגיה מלאה.'}</p><div class="skipbtns"><button class="btn primary" id="skYes">כן, לדלג</button><button class="btn" id="skNo" style="background:#334155">לא, להמשיך</button></div></div>`;
+  document.querySelector('#game').appendChild(d);$('#skNo').addEventListener('click',()=>d.remove());$('#skYes').addEventListener('click',()=>{d.remove();doSkip(story)})}
+async function doSkip(story){try{if(SCRIDE)endScooter(true)}catch(e){}try{if(WK){const S=WK;WK=null;$('#wkPanel').hidden=true;player.h.carry=false;if(S.carryMesh)player.h.armR.remove(S.carryMesh);for(const id of INTER.filter(o=>o.scene==='work').map(o=>o.id))delInter(id);delete SCENES.work}}catch(e){}
+  try{if(RACE){RACE=null;const h=$('#raceHud');if(h)h.hidden=true}}catch(e){}try{if(CBR){if(CBR.bus.g.parent)CBR.bus.g.parent.remove(CBR.bus.g);CBR=null}}catch(e){}try{if(EVT)evtEnd()}catch(e){}
+  try{if(player.car)player.car.speed=0;player.mode='walk';player.car=null;player.h.g.visible=true;player.h.sit=false}catch(e){}
+  $('#dialog').hidden=true;dialogOpen=false;$('#ov').hidden=true;$('#pc').hidden=true;$('#phone').hidden=true;player.lock=true;
+  if(story){for(const o of INTER.filter(o=>o.id>BOOTMAX&&['out','lobby','apt'].includes(o.scene)))delInter(o.id);
+    G.stage='life';G.day=Math.max(2,(G.day||0)+1);G.money=Math.max(G.money||0,300);G.hasPhone=true;G.energy=100;if(!G.role||G.role==='—')G.role='מוקד/ת';await fade(true);save();toast('⏭ דילגת על ההתחלה · ברוך/ה הבא/ה לחיים החדשים!','good');startDay();return}
+  await fade(true);await card('⏭ דילגת על היום','לילה טוב',`יום ${G.day} נגמר. מחר בבוקר מתחילים מחדש עם אנרגיה מלאה.`,'להתעורר');G.day++;G.workDone=false;G.energy=100;
+  if(G.nextJob){G.job=G.nextJob;G.nextJob=null;G.wage=G.jobs[G.job].wage;G.role=JOBS[G.job].titles[G.jobs[G.job].lvl]}save();startDay()}
+const _tickT=V8.tick;V8.tick=function(dt){_tickT(dt);skipUI()};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
