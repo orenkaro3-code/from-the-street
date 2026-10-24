@@ -3495,6 +3495,40 @@ addWorkInters=function(R){for(const id of Object.keys(R.ST)){const st=R.ST[id];a
   addInter({scene:'work',x:0,z:7,r:1.6,label:'לסיים את המשמרת מוקדם',act:()=>{if(WK)WK.t=WK.dur}})};
 const _wkT=wkTick;wkTick=function(dt){if(WK&&WK.busy){WK._p=0;return}return _wkT(dt)};
 
+/* ====================== V8 PART Q: fix leaving city/mall shops, yellow bus-stop signs, transit app follows the city you're in ====================== */
+const _lsQ=leaveShop;leaveShop=async function(id){const g=GENSHOP[id];if(!g||!g.exit)return _lsQ(id);
+  if(CART.length){player.lock=true;await say(STAFF[id]||'המוכר','רגע! לא שילמת על זה. תחזיר/י למדף או תבוא/י לקופה.');CART=[];player.lock=false;return}
+  let e=g.exit;player.lock=true;await fade(true);
+  if(!SCENES[e.sc]){if(/^mall_/.test(e.sc)){const cid=e.sc.slice(5);ensureCity(cid);e={sc:cid,x:6,z:98,yaw:-Math.PI/2}}else ensureCity(e.sc)}
+  goScene(e.sc,e.x,e.z,e.yaw);await fade(false);player.lock=false};
+/* yellow Israeli-style stop sign */
+function yellowSign(n,lines){const g=G_();add(g,_cyl(.05,.05,3,0x9ca3af,8),0,1.5);const s=sign(['🚌 תחנת אוטובוס',n,'קווים: '+lines],1.15,1.25,{bg:'#facc15',fg:'#111',sub:'#111',size:80,w:300,h:330});s.position.set(0,2.55,.06);g.add(s);const b=s.clone();b.rotation.y=Math.PI;b.position.z=-.06;g.add(b);castAll(g);return g}
+const _smQ=stopModel;stopModel=function(n,lines){const g=_smQ(n,lines);const y=yellowSign(n,lines);y.position.set(1.95,0,.2);g.add(y);return g};
+const _initQ=V8.init;V8.init=function(){_initQ();try{for(const st of STOPS){const y=yellowSign(st.n,linesAt(st).map(l=>l.no).join(' · '));const s=Math.sin(st.ry||0),c=Math.cos(st.ry||0);y.position.set(st.x-c*2.6,0,st.z+s*2.6);y.rotation.y=st.ry||0;OUT.s.add(y)}}catch(e){console.warn(e)}};
+/* which city am I in right now (also inside buildings) */
+function curCity(){const n=cur?cur.name:'out';if(WORLD.some(c=>c.id===n))return n;if(n==='thall'&&THALL)return THALL.city;if(/^mall_/.test(n))return n.slice(5);
+  if(/^shop_/.test(n)){const id=n.slice(5);const g=GENSHOP[id];if(g&&g.exit){const s=g.exit.sc;return /^mall_/.test(s)?s.slice(5):s}try{const d=SHOPEXIT(id);return d&&d.sc||'out'}catch(e){return'out'}}
+  if(n==='apt'||n==='aptview')return G.house&&G.house.city||'out';if(n==='work')return G.gen&&G.gen.city||'out';if(n==='businside'||n==='lobby'||n==='netco'||/^floor/.test(n))return'out';if(n==='train')return G.tkt?G.tkt.sc:'out';return'out'}
+transitApp=function(body){const city=curCity(),here=cur&&cur.name===city;let tab=T_TAB;const C=CB[city];
+  const B=body(`<div class="prow"><span>📍 את/ה ב${esc(cityName(city))}</span><b>${String(Math.floor(G.clockMin/60)%24).padStart(2,'0')}:${String(Math.floor(G.clockMin%60)).padStart(2,'0')}</b></div>
+   <div class="jbtabs"><button data-tt="bus" class="${tab==='bus'?'on':''}">אוטובוסים</button><button data-tt="train" class="${tab==='train'?'on':''}">רכבות</button><button data-tt="plan" class="${tab==='plan'?'on':''}">תכנון מסלול</button></div><div id="ttBody"></div>`);
+  B.querySelectorAll('[data-tt]').forEach(b=>b.addEventListener('click',()=>{T_TAB=b.dataset.tt;openApp('transit')}));const out=B.querySelector('#ttBody');
+  const navTo=(n,x,z)=>{if(!here){toast('צא/י קודם מהבניין · הניווט יופיע ברחוב');return}setObj(n,{scene:city,x,z});$('#phone').hidden=true};
+  if(tab==='bus'){if(city==='out'){out.innerHTML=LINES.map(l=>`<div class="tline"><div class="tno" style="background:${l.c}">${l.no}</div><div style="min-width:0"><b>${l.stops.map(i=>STOPS[i].n).join(' ← ')}</b><small>כל ${l.every} דק׳ · ₪6 ברב-קו</small></div><button class="pbtn" data-ln="${l.no}">לתחנה</button></div>`).join('');
+      out.querySelectorAll('[data-ln]').forEach(b=>b.addEventListener('click',()=>{const l=LINES.find(x=>x.no===b.dataset.ln);let best=null,bd=1e9;for(const i of l.stops){const s=STOPS[i],d=Math.hypot(s.x-player.x,s.z-player.z);if(d<bd){bd=d;best=s}}navTo(`תחנת קו ${l.no} · ${best.n}`,best.x,best.z)}));return}
+    if(!C){out.innerHTML='<div class="prow">מפת הקווים של העיר נטענת כשמגיעים אליה.</div>';return}
+    out.innerHTML=`<div class="prow">₪6 ברב-קו · ₪8 באשראי במתקף</div>`+C.lines.map(l=>`<div class="tline"><div class="tno" style="background:${l.c}">${l.no}</div><div style="min-width:0"><b>${esc(l.n)}</b><small>${C.stops.filter(s=>s.li[l.no]!=null).map(s=>esc(s.n)).join(' ← ')}</small></div></div>`).join('')
+      +C.stops.map((s,i)=>`<div class="prow"><span>🚏 ${esc(s.n)} <small style="color:var(--muted)">קווים ${s.lines.join(', ')}</small></span><button class="pbtn" data-cs="${i}">${here?Math.round(Math.hypot(s.x-player.x,s.z-player.z))+' מ׳ · ':''}ניווט</button></div>`).join('');
+    out.querySelectorAll('[data-cs]').forEach(b=>b.addEventListener('click',()=>{const s=C.stops[+b.dataset.cs];navTo('🚏 תחנה · '+s.n,s.x,s.z)}));return}
+  if(tab==='train'){const wi=WORLD.findIndex(c=>c.id===city);const m=Math.floor(G.clockMin%60),nx=(20-m%20)%20||20;
+    out.innerHTML=`<div class="prow"><span>יציאות מ${esc(cityName(city))}</span><b>רב-קו: 25% הנחה</b></div>`+WORLD.map((c,i)=>i===wi?'':`<div class="tline"><div class="tno" style="background:#1d3b8f">🚆</div><div><b>${esc(c.n)}</b><small>יוצאת בעוד ${nx} דק׳ · ${12+Math.abs(i-wi)*6} דק׳ נסיעה · ₪${fareTo(city,c.id)} (ברב-קו ₪${Math.round(fareTo(city,c.id)*.75)})</small></div></div>`).join('')+`<button class="pbtn" id="ttSt">ניווט לתחנת הרכבת</button>`;
+    out.querySelector('#ttSt').addEventListener('click',()=>{const st=stationOf(city);navTo('תחנת הרכבת',st.x,st.z)});return}
+  const stops=city==='out'?STOPS.map(s=>({n:s.n,x:s.x,z:s.z,l:linesAt(s).map(l=>l.no).join(', ')})):(C?C.stops.map(s=>({n:s.n,x:s.x,z:s.z,l:s.lines.join(', ')})):[]);
+  out.innerHTML=`<div style="color:var(--muted)">לאן רוצים להגיע?</div>`+WORLD.filter(c=>c.id!==city).map(c=>`<button class="prow" data-pl="${c.id}" style="cursor:pointer;border:0;color:inherit;text-align:start"><span>${esc(c.n)}</span><b>🚆 ₪${fareTo(city,c.id)}</b></button>`).join('')
+    +stops.map((s,i)=>`<button class="prow" data-ps="${i}" style="cursor:pointer;border:0;color:inherit;text-align:start"><span>🚏 ${esc(s.n)}</span><b>${s.l}</b></button>`).join('');
+  out.querySelectorAll('[data-pl]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.pl;const st=stationOf(city);navTo(`רכבת ל${cityName(id)}: לך/י לתחנה`,st.x,st.z);toast(`סע/י ברכבת ל${cityName(id)} · ₪${fareTo(city,id)}`)}));
+  out.querySelectorAll('[data-ps]').forEach(b=>b.addEventListener('click',()=>{const s=stops[+b.dataset.ps];navTo('🚏 '+s.n,s.x,s.z)}))};
+
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
   if(good)J.good++;let promo='';const tl=JOBS[G.job].titles;
