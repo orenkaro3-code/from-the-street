@@ -37,7 +37,16 @@ module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method === 'GET') {
-    try { await list({ prefix: 'profiles/', limit: 1 }); return res.json({ ok: true, storage: true }); }
+    try {
+      await list({ prefix: 'profiles/', limit: 1 });
+      if (req.query && req.query.selftest) {
+        const u = 'selftest_' + Date.now() % 100000, p = '9999', pre = accPrefix(u, p);
+        await write(pre, { user: u, save: { day: 1 } }); await write(pre, { user: u, save: { day: 2 } });
+        const back = await readJSON(pre); const left = await blobs(pre); if (left.length) await del(left.map(b => b.url));
+        return res.json({ ok: true, storage: true, roundtrip: back && back.save && back.save.day === 2, versionsAfterOverwrite: left.length });
+      }
+      return res.json({ ok: true, storage: true });
+    }
     catch (e) { return res.status(500).json({ ok: false, storage: false, message: String(e && e.message || e).slice(0, 200) }); }
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
