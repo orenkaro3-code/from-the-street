@@ -36,6 +36,10 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Cache-Control', 'no-store');
   if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method === 'GET') {
+    try { await list({ prefix: 'profiles/', limit: 1 }); return res.json({ ok: true, storage: true }); }
+    catch (e) { return res.status(500).json({ ok: false, storage: false, message: String(e && e.message || e).slice(0, 200) }); }
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   let b = req.body;
   if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = {}; } }
