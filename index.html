@@ -278,6 +278,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+.lvlchip{cursor:pointer;min-width:92px}.xpbar{display:block;height:6px;border-radius:3px;background:#1f2937;overflow:hidden;margin-top:3px}.xpbar b{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#facc15)}
+#raceHud{top:76px;left:50%;transform:translateX(-50%);background:rgba(11,20,28,.88);border:2px solid #f97316;border-radius:14px;padding:8px 18px;display:flex;flex-direction:column;align-items:center;font-family:var(--f-mono);z-index:8}#raceHud b{font-size:22px}#raceHud small{color:var(--muted)}#raceHud .rc{font-size:64px;color:#f97316;animation:pop .5s ease}#raceHud .rc.go{color:#22c55e}
+#radioBtn{bottom:228px;inset-inline-end:16px;z-index:7}.qrow{display:flex;flex-direction:column;gap:2px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:10px;padding:8px}.qrow small{color:var(--muted)}.qrow.done{opacity:.65;border-color:#16a34a}
+.achgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ach{background:rgba(255,255,255,.04);border-radius:8px;padding:6px;display:flex;flex-direction:column;opacity:.55}.ach.on{opacity:1;background:rgba(250,204,21,.14);border:1px solid rgba(250,204,21,.4)}.ach small{color:var(--muted);font-size:11px}
 .acctbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px;border-radius:12px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.4);font-size:13px}
 .accin{width:100%;box-sizing:border-box;padding:10px 12px;margin:4px 0;border-radius:10px;border:1px solid var(--line);background:#0b1220;color:var(--text);font-size:16px}.acccode{width:100%;box-sizing:border-box;height:90px;border-radius:10px;background:#0b1220;color:#a5b4fc;border:1px solid var(--line);font-family:var(--f-mono);font-size:11px;direction:ltr}
 .accmsg{font-weight:700;color:#a7f3d0;margin:4px 0}.accmsg.bad{color:#fca5a5}.frow{display:flex;flex-direction:column;background:rgba(255,255,255,.05);border-radius:8px;padding:6px 8px}.frow small{color:var(--muted)}
@@ -942,7 +946,7 @@ const waiters=[];function waitFor(fn){return new Promise(res=>waiters.push({fn,r
 const G={name:'אלי',day:0,money:12,role:'דר רחוב',wage:0,goodDays:0,stage:'title',clockMin:23*60+40,seenLobby:false,tier:0,
   hasPhone:false,phonePro:false,job:'dispatch',jobs:{dispatch:{wage:48,good:0,raiseGood:0,lastRaise:0,lvl:0},service:{wage:45,good:0,raiseGood:0,lastRaise:0,lvl:0}},
   energy:80,fridge:2,home:{},fines:[],ravkav:{has:false,bal:0},bank:{open:false,card:false,debt:0,limit:5000,num:''},tx:[],look:{shirt:0x5b8fc7,pants:0x2c3540},lastAsk:-1,nextJob:null,workDone:false};
-const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor','friends'];
+const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor','friends','xp','stats','quest','ach','coins','race','weather','wday'];
 function gameClock(){const m=Math.floor(G.clockMin)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function hud(){$('#dayK').textContent=G.day?('יום '+G.day):'לילה';$('#dayV').textContent=gameClock();$('#money').textContent=fmt(G.money)+(G.bank.card&&G.bank.debt?` · אשראי ${fmt(G.bank.debt)}`:'');$('#role').textContent=G.role;
   $('#energyV').textContent=Math.round(G.energy)+'%';$('#energyV').style.color=G.energy<20?'var(--red)':'';$('#phoneBtn').hidden=!G.hasPhone}
@@ -1048,7 +1052,7 @@ function openApp(id){const v=$('#pview'),T=$('#phoneTitle');v.innerHTML='';
   if(id==='ravkav'){const b=body(`<div class="card3d" style="background:linear-gradient(135deg,#15803d,#065f46)"><span>רב-קו אישי</span><span class="num">יתרה ₪${G.ravkav.bal}</span><span>${esc(G.name)}</span></div>${[30,50,100].map(v=>`<button class="pbtn" data-rk="${v}">לטעון ₪${v}</button>`).join('')}<div style="color:var(--muted)">הטעינה יורדת מהחשבון או מהאשראי. נסיעה באוטובוס ₪6, ברכבת ₪14.</div>`);
     b.querySelectorAll('[data-rk]').forEach(x=>x.addEventListener('click',()=>{const v=+x.dataset.rk;if(!G.bank.open&&!G.bank.card){toast('צריך חשבון בנק כדי לטעון באפליקציה');return}if(pay(v,'טעינת רב-קו',G.money>=v?'cash':'card')){G.ravkav.bal+=v;save();openApp('ravkav')}else toast('אין מספיק כסף')}));return}
   if(id==='fines'||id==='taxi'){phoneApp2(id,body);return}
-  if(['jobs','map','fam','house','vote','transit','fun','kor','acct'].includes(id)){phoneApp3(id,body);return}
+  if(['jobs','map','fam','house','vote','transit','fun','kor','acct','quests'].includes(id)){phoneApp3(id,body);return}
   if(id==='news'){body(['מחירי הדלק עולים ב-12 אגורות לליטר מחר בחצות.','ספקי החשמל הפרטיים מציעים מבצעי חורף: עד 10% הנחה למצטרפים.','עומסי תנועה כבדים בשדרות הים בשעות הבוקר.','רשת סלולר פלוס פותחת סניף חדש בקניון.','תחזית: גשם קל בערב, טמפרטורות 14–19 מעלות.'].map(t=>`<div class="prow"><span>${t}</span></div>`).join(''));return}
   if(id==='set'){const b=body(`<div class="prow"><span>קול לקוחות במוקד</span><button class="pbtn alt" id="vo">${voiceOn?'פועל':'כבוי'}</button></div><div class="prow"><span>מצלמה בנהיגה</span><button class="pbtn alt" id="cm">${camMode==='in'?'מבפנים':'מבחוץ'}</button></div>`);
     b.querySelector('#vo').addEventListener('click',()=>{voiceOn=!voiceOn;openApp('set')});b.querySelector('#cm').addEventListener('click',()=>{toggleCam();openApp('set')});return}
@@ -3156,6 +3160,131 @@ const _oaM=openApp;openApp=function(id){_oaM(id);if(id==='set'){const v=$('#pvie
 addEventListener('keydown',e=>{if((e.key==='g'||e.key==='G'||e.key==='ע')&&!dialogOpen&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA')setGfx(GFX==='high'?'medium':GFX==='medium'?'low':'high')});
 
 applyGfx();
+
+/* ====================== V8 PART N: fun layer — levels, daily quests, achievements, gold coins, street events, races, weather, car radio ====================== */
+function ST(){G.stats=G.stats||{};return G.stats}
+const lvlOf=xp=>1+Math.floor(Math.sqrt((xp||0)/40)),xpFor=L=>40*(L-1)*(L-1);
+function addXP(n,why){const L0=lvlOf(G.xp);G.xp=(G.xp||0)+n;const L1=lvlOf(G.xp);lvlHud();if(why)toast(`+${n} XP · ${why}`,'good');
+  if(L1>L0){confetti(120);beep(523,.12);setTimeout(()=>beep(659,.12),130);setTimeout(()=>beep(784,.12),260);setTimeout(()=>beep(1046,.25),390);const prize=50*L1;earn(prize,'בונוס עליית רמה');
+    setTimeout(()=>card('⭐ עלית רמה!',`רמה ${L1}`,`כל הכבוד! קיבלת בונוס של <b>${fmt(prize)}</b>.<br>המשך לעבוד, לבלות ולעזור לאנשים כדי לעלות עוד.`,'יאללה'),300)}save()}
+function lvlHud(){let c=$('#lvlChip');if(!c){const t=$('#top');if(!t)return;c=document.createElement('div');c.className='chip lvlchip';c.id='lvlChip';t.insertBefore(c,t.children[1]||null);c.addEventListener('click',()=>{$('#phone').hidden=false;openApp('quests')})}
+  const L=lvlOf(G.xp),a=xpFor(L),b=xpFor(L+1),p=Math.round(((G.xp||0)-a)/(b-a)*100);c.innerHTML=`<span class="k">⭐ רמה ${L}</span><span class="v"><i class="xpbar"><b style="width:${p}%"></b></i></span>`}
+/* --- daily quests --- */
+const QT=[['shift',1,'לסיים משמרת עבודה',60],['goodshift',1,'משמרת עם 4 כוכבים ומעלה',100],['buy',2,'לקנות פעמיים בחנויות',40],['scoot',10,'לרכוב 10 דקות על קורקינט',40],['fun',2,'2 בילויים (גלגל ענק, קולנוע, כדורסל, נגן...)',50],
+  ['coin',3,'לאסוף 3 מטבעות זהב 🪙',50],['event',1,'לעזור לאדם ברחוב (סימן ❗)',80],['race',1,'לסיים מרוץ עיר 🏁',80],['walk_m',800,'ללכת 800 מטר',30],['drive_m',2000,'לנהוג 2 ק״מ',40],['city_any',1,'לנסוע לעיר אחרת',40],['fun_hoop',1,'לשחק כדורסל',30],['fun_lotto',1,'לקנות כרטיס גירוד',20],['fun_wheel',1,'לעלות על הגלגל הענק',30]];
+function ensureQuests(){if(G.quest&&G.quest.day===G.day)return;const pool=[...QT].sort(()=>Math.random()-.5).slice(0,3);G.quest={day:G.day,list:pool.map(q=>({ev:q[0],goal:q[1],txt:q[2],rw:q[3],n:0,done:false})),bonus:false};save()}
+function funEv(ev,n){n=n==null?1:n;const S=ST();S[ev]=(S[ev]||0)+n;if(!G.quest)return;let ch=false;
+  for(const q of G.quest.list){if(q.done||q.ev!==ev)continue;q.n=Math.min(q.goal,q.n+n);ch=true;if(q.n>=q.goal){q.done=true;earn(q.rw,'משימה יומית: '+q.txt);addXP(30);toast(`🎯 משימה הושלמה: ${q.txt} · +${fmt(q.rw)}`,'good');beep(988,.1);setTimeout(()=>beep(1318,.15),120)}}
+  if(ch&&!G.quest.bonus&&G.quest.list.every(q=>q.done)){G.quest.bonus=true;earn(150,'בונוס: כל המשימות היומיות');addXP(60);confetti(80);toast('🏆 סיימת את כל המשימות של היום! +₪150','good')}if(ch)save()}
+/* --- achievements --- */
+const ACH=[['shift1','עובד/ת אמיתי/ת','לסיים משמרת ראשונה',()=>ST().shift>=1],['shift10','ותיק/ה בעבודה','10 משמרות',()=>ST().shift>=10],['shift30','עובד/ת החודש','30 משמרות',()=>ST().shift>=30],
+  ['rich5','חיסכון ראשון','להגיע ל-₪5,000',()=>G.money>=5000],['rich50','מיליונר/ית בדרך','להגיע ל-₪50,000',()=>G.money>=50000],['wed','מזל טוב!','להתחתן',()=>!!(G.fam&&G.fam.spouse)],['kids3','משפחה גדולה','3 ילדים',()=>(G.fam&&G.fam.kids||[]).length>=3],
+  ['scoot60','מלך/ת הקורקינטים','שעה של רכיבה על קורקינט',()=>ST().scoot>=60],['coin20','צייד/ת אוצרות','20 מטבעות זהב',()=>ST().coin>=20],['coin60','אספן/ית','60 מטבעות זהב',()=>ST().coin>=60],
+  ['pass7','מטייל/ת','חותמת מכל 7 הערים',()=>Object.keys(LMK).every(c=>G.pass&&G.pass[c])],['knesset','אורח/ת בכנסת','לבקר בכנסת',()=>!!(G.pass&&G.pass['הכנסת'])],['cities5','מגלה ערים','לבקר ב-5 ערים',()=>Object.keys(ST().visited||{}).length>=5],
+  ['race1','נהג/ת מרוצים','לסיים מרוץ עיר',()=>ST().race>=1],['race60','ברק','מרוץ מתחת ל-70 שניות',()=>Object.values(G.race||{}).some(t=>t<70)],['help5','מלאך/ית ברחוב','לעזור ל-5 אנשים',()=>ST().event>=5],
+  ['vote','אזרח/ית טוב/ה','להצביע בבחירות',()=>ST().vote>=1],['walk10','10 ק״מ ברגל','ללכת 10 ק״מ',()=>ST().walk_m>=10000],['drive50','נהג/ת מקצועי/ת','לנהוג 50 ק״מ',()=>ST().drive_m>=50000],['lvl5','רמה 5','להגיע לרמה 5',()=>lvlOf(G.xp)>=5],['lvl10','רמה 10','להגיע לרמה 10',()=>lvlOf(G.xp)>=10]];
+function checkAch(){G.ach=G.ach||{};for(const [id,n,d,t] of ACH){if(G.ach[id])continue;let ok=false;try{ok=t()}catch(e){}if(ok){G.ach[id]=G.day||1;addXP(50);confetti(60);toast(`🏆 הישג חדש: ${n}`,'good');save()}}}
+/* --- hooks into existing systems --- */
+const _ewN=endWork;endWork=async function(rows,bonus,good,quote){funEv('shift');if(good)funEv('goodshift');addXP(good?40:25,'סוף משמרת');return _ewN.apply(this,arguments)};
+const _ppN=payPOS;payPOS=async function(a,label,how){const ok=await _ppN(a,label,how);if(ok){funEv('buy');addXP(3)}return ok};
+const _stN=stamp;stamp=function(k){_stN(k);funEv('fun');funEv('fun_'+k);addXP(8)};
+const _rsN=releaseScooter;releaseScooter=function(pm,a){const min=KUI&&KUI.min||0;const ok=_rsN(pm,a);if(ok){funEv('scoot',Math.round(min));addXP(5)}return ok};
+const _acN=arriveCity;arriveCity=async function(sc){const r=await _acN.apply(this,arguments);const S=ST();S.visited=S.visited||{};if(!S.visited[sc]){S.visited[sc]=1;addXP(40,'עיר חדשה: '+cityName(sc))}if(!G.house||sc!==G.house.city)funEv('city_any');return r};
+const _biN=birth;birth=async function(){const r=await _biN.apply(this,arguments);addXP(60,'נולד/ה ילד/ה');return r};
+const _voN=vote;vote=async function(){const v0=G.elect&&G.elect.voted;const r=await _voN.apply(this,arguments);if(!v0&&G.elect&&G.elect.voted){funEv('vote');addXP(50,'הצבעת')}return r};
+const _sdN=startDay;startDay=async function(){const r=await _sdN.apply(this,arguments);ensureQuests();rollWeather();lvlHud();setTimeout(()=>{if(G.quest&&!G.quest.shown){G.quest.shown=1;toast('🎯 3 משימות יומיות חדשות · באפליקציית "משימות"','good')}},4000);return r};
+/* --- gold coins in every outdoor city --- */
+const COINS={};const COINGEO=new THREE.CylinderGeometry(.32,.32,.07,20).rotateX(Math.PI/2),COINM=new THREE.MeshStandardMaterial({color:0xfacc15,metalness:.85,roughness:.25,emissive:0x8a6100,emissiveIntensity:.35});
+function coinsFor(sc){const R=SCENES[sc];if(!R||R.indoor||!MAPD[sc])return null;if(COINS[sc]&&COINS[sc].R===R)return COINS[sc];G.coins=G.coins||{};const got=G.coins[sc]||[];const rnd=srng(seedOf(sc+'coins'));const B=R.bounds;const items=[];
+  for(let i=0;i<12;i++){const ax=B.x0+8+rnd()*(B.x1-B.x0-16),az=B.z0+8+rnd()*(B.z1-B.z0-16);const p=freeSpot(R,sc,ax,az,.8);if(!p||got.includes(i))continue;const g=G_();const m=new THREE.Mesh(COINGEO,COINM);m.position.y=1.1;m.castShadow=true;g.add(m);const gl=glow(0xffe08a,1.6,.55);gl.position.y=1.1;g.add(gl);g.position.set(p.x,0,p.z);R.s.add(g);items.push({i,x:p.x,z:p.z,g,m})}
+  return COINS[sc]={R,items}}
+function coinTick(dt){if(!cur)return;const C=coinsFor(cur.name);if(!C)return;const t=performance.now()/1000;for(const c of C.items.slice()){c.m.rotation.y=t*2.4+c.i;c.m.position.y=1.1+Math.sin(t*2+c.i)*.12;
+  if(Math.hypot(player.x-c.x,player.z-c.z)<1.5){cur.s.remove(c.g);C.items.splice(C.items.indexOf(c),1);G.coins[cur.name]=(G.coins[cur.name]||[]).concat(c.i);earn(20,'מטבע זהב');funEv('coin');addXP(10);[880,1175,1568].forEach((f,k)=>setTimeout(()=>beep(f,.08),k*70));
+    toast(`🪙 מטבע זהב! (${G.coins[cur.name].length}/12 ב${cityName(cur.name)})`,'good');save()}}}
+/* --- street events: someone with ❗ needs help --- */
+let EVT=null,EVT_T=60;
+function exclTex(){return ctexC('EXCL',128,128,(g,w,h)=>{g.fillStyle='#facc15';g.beginPath();g.arc(64,64,58,0,7);g.fill();g.fillStyle='#111';g.font='bold 92px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('!',64,70)})}
+function evtPois(sc,minD,maxD){return((MAPD[sc]&&MAPD[sc].pois)||[]).filter(p=>{const d=Math.hypot(p.x-player.x,p.z-player.z);return d>minD&&d<maxD&&!p.scoot})}
+function evtEnd(msg,good){if(!EVT)return;const E=EVT;EVT=null;EVT_T=rand(120,200);if(E.inter)delInter(E.inter);if(E.pick){if(E.pick.g.parent)E.pick.g.parent.remove(E.pick.g)}if(E.sp&&E.sp.parent)E.sp.parent.remove(E.sp);
+  if(E.carry){player.h.carry=false;if(E.carryMesh)player.h.armR.remove(E.carryMesh)}const n=E.n;if(n&&SCENES[E.sc]){n.h.wave=1.5;n.target={x:n.x+rand(-30,30),z:n.z+rand(-30,30)};n.speed=1.3;n.follow=false;setTimeout(()=>{try{removeNpc(n)}catch(e){}},6000)}
+  if(msg)toast(msg,good?'good':'');if(objective.text&&objective.text.startsWith('❗'))setObj('',null)}
+function spawnEvent(){const sc=cur.name,R=cur;if(R.indoor||!MAPD[sc]||player.mode!=='walk'&&player.mode!=='drive')return;const types=['wallet','tourist','parcel'];const type=pick(types);
+  const a=Math.random()*6.28;const p=freeSpot(R,sc,player.x+Math.cos(a)*18,player.z+Math.sin(a)*18,1);if(!p)return;const n=npc(sc,pick(PED),p.x,p.z,0);n.solid=true;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:exclTex(),depthTest:false,transparent:true}));sp.scale.set(.7,.7,1);sp.position.y=2.6;n.h.g.add(sp);
+  EVT={type,sc,n,sp,state:'ask',t:0};EVT.inter=addInter({scene:sc,x:()=>EVT&&EVT.n?EVT.n.x:-999,z:()=>EVT&&EVT.n?EVT.n.z:-999,r:2,mode:'walk',label:()=>EVT?({ask:'❗ מישהו צריך עזרה',back:'להחזיר את הארנק',tour:'',parcel:''}[EVT.state]||''):'',when:()=>EVT&&(EVT.state==='ask'||EVT.state==='back'),act:()=>evtTalk()});
+  toast('❗ מישהו קרוב צריך עזרה','');beep(660,.08)}
+async function evtTalk(){const E=EVT;if(!E)return;player.lock=true;E.n.yaw=Math.atan2(player.x-E.n.x,player.z-E.n.z);
+  if(E.state==='back'){await say('בעל/ת הארנק','מצאת אותו! איזה מזל, תודה ענקית! הנה משהו קטן בשבילך.');earn(60,'פרס: החזרת ארנק');funEv('event');addXP(40);evtEnd('❤ עזרת לאדם ברחוב · +₪60',true);player.lock=false;return}
+  if(E.type==='wallet'){const k=await say('עובר/ת אורח/ת','אוי, איבדתי את הארנק שלי איפשהו פה ברחוב... תעזור/י לי לחפש?',['בטח, אני מחפש/ת','מצטער/ת, אני ממהר/ת']);if(k){evtEnd();player.lock=false;return}
+    const a=Math.random()*6.28;const p=freeSpot(cur,E.sc,E.n.x+Math.cos(a)*rand(25,45),E.n.z+Math.sin(a)*rand(25,45),.8)||{x:E.n.x+20,z:E.n.z};const g=G_();add(g,box(.3,.06,.22,0x7c2d12),0,.05);const gl=glow(0xfff1a8,1.3,.7);gl.position.y=.4;g.add(gl);g.position.set(p.x,0,p.z);cur.s.add(g);
+    E.pick={g,x:p.x,z:p.z};E.state='seek';setObj('❗ למצוא את הארנק (בערך כאן)',{scene:E.sc,x:p.x+rand(-6,6),z:p.z+rand(-6,6)})}
+  else if(E.type==='tourist'){const ps=evtPois(E.sc,35,170);if(!ps.length){evtEnd();player.lock=false;return}const d=pick(ps);const k=await say('תייר/ת','Hello! סליחה... אני מחפש/ת את '+d.n+'. תוכל/י להוביל אותי לשם?',['בוא/י אחריי!','לא עכשיו']);if(k){evtEnd();player.lock=false;return}
+    E.dest=d;E.state='tour';E.n.follow=true;setObj('❗ להוביל את התייר/ת ל'+d.n,{scene:E.sc,x:d.x,z:d.z})}
+  else{const ps=evtPois(E.sc,50,200);if(!ps.length){evtEnd();player.lock=false;return}const d=pick(ps);const k=await say('שליח/ה עמוס/ה','אני תקוע/ה! תוכל/י להעביר את החבילה הזאת ל'+d.n+' תוך 2 דקות? אשלם לך.',['קדימה, תן/י לי','לא, תודה']);if(k){evtEnd();player.lock=false;return}
+    E.dest=d;E.state='parcel';E.left=120;E.carry=true;player.h.carry=true;const m=box(.45,.32,.36,0xb7895a);m.position.set(.36,-.6,.35);player.h.armR.add(m);E.carryMesh=m;setObj('❗ חבילה ל'+d.n,{scene:E.sc,x:d.x,z:d.z});E.n.target={x:E.n.x+20,z:E.n.z};E.n.speed=1.3}
+  player.lock=false}
+function evtTick(dt){if(!cur)return;if(!EVT){if(cur.indoor||!MAPD[cur.name]||player.lock||dialogOpen)return;EVT_T-=dt;if(EVT_T<=0){EVT_T=rand(150,240);spawnEvent()}return}
+  const E=EVT;if(cur.name!==E.sc||(E.n&&E.state==='ask'&&Math.hypot(E.n.x-player.x,E.n.z-player.z)>140)){evtEnd();return}E.t+=dt;if(E.state==='ask'&&E.t>150){evtEnd();return}
+  if(E.state==='seek'&&E.pick&&Math.hypot(player.x-E.pick.x,player.z-E.pick.z)<1.6){cur.s.remove(E.pick.g);E.pick=null;E.state='back';beep(990,.1);toast('👛 מצאת את הארנק! תחזיר/י אותו');setObj('❗ להחזיר את הארנק',{scene:E.sc,x:()=>E.n.x,z:()=>E.n.z})}
+  if(E.state==='tour'&&E.n){const n=E.n,d=Math.hypot(player.x-n.x,player.z-n.z);if(d>2.5){n.target={x:player.x-Math.sin(player.yaw)*1.6,z:player.z-Math.cos(player.yaw)*1.6};n.speed=Math.min(7,1.5+d*.9)}else n.target=null;
+    if(Math.hypot(n.x-E.dest.x,n.z-E.dest.z)<8&&Math.hypot(player.x-E.dest.x,player.z-E.dest.z)<9){say('תייר/ת','Thank you! תודה רבה, אתה/את מדריך/ה מעולה!');earn(50,'טיפ מתייר');funEv('event');addXP(40);evtEnd('❤ הובלת תייר/ת · +₪50',true)}}
+  if(E.state==='parcel'){E.left-=dt;if(E.left<=0){evtEnd('⏰ הזמן נגמר · החבילה חזרה לשליח/ה');return}if(objective.text&&objective.text.startsWith('❗ חבילה'))$('#objT').textContent='❗ חבילה ל'+E.dest.n+' · '+Math.ceil(E.left)+' שנ׳';
+    if(Math.hypot(player.x-E.dest.x,player.z-E.dest.z)<6){const pay2=40+Math.round(E.left/2);earn(pay2,'משלוח דחוף');funEv('event');addXP(40);evtEnd(`📦 החבילה נמסרה בזמן! +₪${pay2}`,true)}}}
+const _unN=updateNpcs;updateNpcs=function(dt){_unN(dt)};
+/* --- city race on the ring road (big cities) --- */
+const RACEPTS=[[60,-40],[60,0],[60,45],[45,60],[0,60],[-45,60],[-60,45],[-60,0],[-60,-45],[-45,-60],[0,-60],[45,-60],[60,-44]];
+let RACE=null;
+function buildRace(R,def){const S=R.s;R.rings=[];for(let i=1;i<RACEPTS.length;i++){const [x,z]=RACEPTS[i],[px,pz]=RACEPTS[i-1];const r=new THREE.Mesh(new THREE.TorusGeometry(3.4,.16,8,32),new THREE.MeshBasicMaterial({color:0xf97316,transparent:true,opacity:.0}));r.position.set(x,3.4,z);r.rotation.y=Math.atan2(x-px,z-pz);S.add(r);R.rings.push(r)}
+  const gate=G_();for(const s of[-1,1])add(gate,box(.3,5,.3,0x111827),s*4.2,2.5);const fl=new THREE.Mesh(new THREE.PlaneGeometry(8.4,1.2),new THREE.MeshBasicMaterial({map:ctexC('CHECKER',256,40,(g,w,h)=>{for(let x=0;x<w;x+=20)for(let y=0;y<h;y+=20){g.fillStyle=((x+y)/20)%2?'#111':'#fff';g.fillRect(x,y,20,20)}}),side:THREE.DoubleSide}));fl.position.y=5;gate.add(fl);
+  const sg=sign(['🏁 מרוץ העיר','להתחיל כאן'],3.4,1,{bg:'#f97316',size:90,w:512,h:150});sg.position.set(5.6,2.2,0);sg.rotation.y=-Math.PI/2;gate.add(sg);gate.position.set(60,0,-40);S.add(gate);
+  const id=addInter({scene:def.id,x:66,z:-40,r:2.6,mode:'walk',label:()=>`🏁 מרוץ ${def.n} · שיא: ${G.race&&G.race[def.id]?G.race[def.id].toFixed(1)+' שנ׳':'אין עדיין'}`,when:()=>!RACE,act:()=>startRace(def)});R.inters.push(id);
+  const id2=addInter({scene:def.id,x:60,z:-40,r:4,label:()=>`🏁 מרוץ ${def.n} · להתחיל`,when:()=>!RACE&&(player.mode==='drive'||!!SCRIDE),act:()=>startRace(def)});R.inters.push(id2);
+  MAPD[def.id].pois.push({n:'מרוץ העיר',x:60,z:-40,c:'#f97316',ic:'🏁'})}
+async function startRace(def){const R=SCENES[def.id];player.lock=true;let h=$('#raceHud');if(!h){h=document.createElement('div');h.id='raceHud';h.className='hud';document.querySelector('#game').appendChild(h)}h.hidden=false;
+  for(const n of[3,2,1]){h.innerHTML=`<b class="rc">${n}</b>`;beep(440,.15);await sleep(700)}h.innerHTML='<b class="rc go">!צא</b>';beep(880,.3);player.lock=false;
+  RACE={sc:def.id,R,i:0,t:0,def};R.rings.forEach((r,k)=>{r.material.opacity=k===0?.95:.25;r.material.color.setHex(k===0?0x22c55e:0xf97316)});setObj('🏁 עבור/י בטבעת הירוקה',{scene:def.id,x:RACEPTS[1][0],z:RACEPTS[1][1]})}
+function raceTick(dt){if(!RACE)return;const h=$('#raceHud');if(cur.name!==RACE.sc||RACE.t>240){RACE.R.rings&&RACE.R.rings.forEach(r=>r.material.opacity=0);RACE=null;if(h)h.hidden=true;toast('המרוץ בוטל');return}
+  RACE.t+=dt;const [x,z]=RACEPTS[RACE.i+1];if(h)h.innerHTML=`<b>🏁 ${RACE.t.toFixed(1)} שנ׳</b><small>טבעת ${RACE.i+1}/${RACEPTS.length-1}${G.race&&G.race[RACE.sc]?' · שיא '+G.race[RACE.sc].toFixed(1):''}</small>`;
+  if(Math.hypot(player.x-x,player.z-z)<5){const rr=RACE.R.rings;rr[RACE.i].material.opacity=0;beep(1046,.07);RACE.i++;
+    if(RACE.i>=rr.length){const t=RACE.t,sc=RACE.sc;G.race=G.race||{};const best=G.race[sc];const first=!best;if(!best||t<best)G.race[sc]=t;RACE=null;confetti(90);funEv('race');addXP(first?60:(t<best?40:15));if(first)earn(100,'מרוץ ראשון');
+      if(h){h.innerHTML=`<b>🏁 ${t.toFixed(1)} שנ׳</b><small>${first?'מרוץ ראשון! +₪100':t<best?'🔥 שיא חדש!':'שיא: '+best.toFixed(1)}</small>`;setTimeout(()=>h.hidden=true,4000)}setObj('',null);save();return}
+    rr[RACE.i].material.opacity=.95;rr[RACE.i].material.color.setHex(0x22c55e);if(rr[RACE.i+1])rr[RACE.i+1].material.opacity=.35;setObj('🏁 טבעת '+(RACE.i+1),{scene:RACE.sc,x:RACEPTS[RACE.i+1][0],z:RACEPTS[RACE.i+1][1]})}}
+const _bgcN=buildGenCity;buildGenCity=function(def){const R=_bgcN(def);try{buildRace(R,def)}catch(e){console.warn(e)}return R};
+/* --- weather: some days it rains --- */
+let RAIN=null;
+function rollWeather(){if(G.wday===G.day)return;G.wday=G.day;G.weather=Math.random()<.28?'rain':Math.random()<.4?'cloudy':'sun';if(G.weather==='rain')setTimeout(()=>toast('☔ היום יורד גשם · נהגו בזהירות'),2500)}
+function rainTick(dt){const want=G.weather==='rain'&&cur&&!cur.indoor&&MAPD[cur.name]&&GFX!=='low';
+  if(!want){if(RAIN&&RAIN.parent){RAIN.parent.remove(RAIN)}rainSnd(false);return}
+  if(!RAIN){const N=touch?900:1800,pos=new Float32Array(N*6);for(let i=0;i<N;i++){const x=rand(-35,35),y=rand(0,25),z=rand(-35,35);pos.set([x,y,z,x+.05,y-.7,z],i*6)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    RAIN=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xb7d3ea,transparent:true,opacity:.45}));RAIN.frustumCulled=false}
+  if(RAIN.parent!==cur.s)cur.s.add(RAIN);RAIN.position.set(camera.position.x,camera.position.y-12,camera.position.z);const a=RAIN.geometry.attributes.position,arr=a.array;for(let i=0;i<arr.length;i+=6){arr[i+1]-=dt*26;arr[i+4]-=dt*26;if(arr[i+1]<0){const y=25+Math.random()*3;arr[i+1]=y;arr[i+4]=y-.7}}a.needsUpdate=true;rainSnd(true)}
+let RSND=null;function rainSnd(on){if(!AC)return;try{if(on&&!RSND){const b=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const s=AC.createBufferSource();s.buffer=b;s.loop=true;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=AC.createGain();g.gain.value=.018;s.connect(f);f.connect(g);g.connect(AC.destination);s.start();RSND={s,g}}
+  else if(!on&&RSND){RSND.s.stop();RSND=null}}catch(e){}}
+/* --- car radio --- */
+const STATIONS=[null,{n:'📻 רדיו העיר 101 · פופ',bpm:118,sc:[0,2,4,7,9],root:261.6,wave:'triangle'},{n:'📻 גל רוק 88',bpm:132,sc:[0,3,5,7,10],root:196,wave:'sawtooth'},{n:'📻 צ׳יל 95 · לאונג׳',bpm:84,sc:[0,2,3,7,9],root:220,wave:'sine'}];
+let RADIO=0,RAD=null;
+function radioSet(i){RADIO=i;if(RAD){clearInterval(RAD.iv);RAD=null}const S=STATIONS[i];toast(S?S.n:'📻 הרדיו כבוי');const b=$('#radioBtn');if(b)b.textContent=S?'📻 '+S.n.split(' · ')[0].replace('📻 ',''):'📻 רדיו';if(!S||!AC)return;let step=0;const pat=[0,2,4,2,3,1,4,0];
+  RAD={iv:setInterval(()=>{if(player.mode!=='drive'||muteEng){return}const t=AC.currentTime;const note=(deg,oct,dur,vol,wave)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=wave;o.frequency.value=S.root*Math.pow(2,(S.sc[deg%5]+12*(oct+Math.floor(deg/5)))/12);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.02)};
+    if(step%2===0)note(0,-1,.35,.03,'sine');if(Math.random()<.85)note(pat[step%8]+(step%16>7?1:0),0,.22,.018,S.wave);if(step%4===2)note(4,1,.1,.006,'square');step++},60000/S.bpm/2)}}
+function radioUI(){let b=$('#radioBtn');const on=player.mode==='drive';if(!b&&on){b=document.createElement('button');b.id='radioBtn';b.className='hud hudbtn';b.textContent='📻 רדיו';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>radioSet((RADIO+1)%STATIONS.length))}if(b)b.hidden=!on}
+addEventListener('keydown',e=>{if((e.key==='r'||e.key==='R'||e.key==='ר')&&player.mode==='drive'&&document.activeElement.tagName!=='INPUT')radioSet((RADIO+1)%STATIONS.length)});
+/* --- per-frame: distances, coins, events, races, rain, achievements --- */
+let LASTP=null,ACHT=0;
+const _tickN=V8.tick;V8.tick=function(dt){_tickN(dt);if(!cur||!player.h)return;
+  if(LASTP&&LASTP.sc===cur.name){const d=Math.hypot(player.x-LASTP.x,player.z-LASTP.z);if(d<20&&d>.01){if(player.mode==='drive')funEv('drive_m',d);else if(player.mode==='walk'&&!SCRIDE)funEv('walk_m',d)}}LASTP={sc:cur.name,x:player.x,z:player.z};
+  try{coinTick(dt)}catch(e){}try{evtTick(dt)}catch(e){}try{raceTick(dt)}catch(e){}try{rainTick(dt)}catch(e){}radioUI();ACHT-=dt;if(ACHT<=0){ACHT=2;checkAch()}};
+/* funEv for distances fires often: keep stats but avoid saving every frame */
+const _funEv0=funEv;funEv=function(ev,n){if(ev==='walk_m'||ev==='drive_m'){const S=ST();S[ev]=(S[ev]||0)+n;if(!G.quest)return;for(const q of G.quest.list){if(q.done||q.ev!==ev)continue;q.n=Math.min(q.goal,q.n+n);if(q.n>=q.goal){S[ev]-=0;_funEv0(ev,0)}}return}return _funEv0(ev,n)};
+/* --- phone app: quests, achievements, collection --- */
+APPS.push({id:'quests',n:'משימות',c:'#f59e0b',i:'🎯'});let QTAB='q';
+const _appN=V8.app;V8.app=function(id,body){if(id!=='quests'){_appN(id,body);return}ensureQuests();const L=lvlOf(G.xp),a=xpFor(L),b=xpFor(L+1);
+  const tabs=`<div class="jbtabs"><button data-qt="q" class="${QTAB==='q'?'on':''}">היום</button><button data-qt="a" class="${QTAB==='a'?'on':''}">הישגים</button><button data-qt="c" class="${QTAB==='c'?'on':''}">אוסף</button></div>`;
+  let h=`<div class="prow"><span>⭐ רמה ${L}</span><b>${Math.round(G.xp||0)-a} / ${b-a} XP</b></div>`+tabs;
+  if(QTAB==='q')h+=G.quest.list.map(q=>`<div class="qrow${q.done?' done':''}"><div><b>${q.done?'✅':'🎯'} ${esc(q.txt)}</b><small>${Math.floor(q.n)}/${q.goal} · פרס ${fmt(q.rw)}</small></div><i class="xpbar"><b style="width:${Math.min(100,q.n/q.goal*100)}%"></b></i></div>`).join('')+`<small style="color:var(--muted)">משימות חדשות כל יום · כל ה-3 = בונוס ₪150</small>`;
+  else if(QTAB==='a'){G.ach=G.ach||{};const n=Object.keys(G.ach).length;h+=`<div class="prow"><span>🏆 הישגים</span><b>${n}/${ACH.length}</b></div><div class="achgrid">${ACH.map(([id,nm,d])=>`<div class="ach${G.ach[id]?' on':''}"><b>${G.ach[id]?'🏆':'🔒'} ${esc(nm)}</b><small>${esc(d)}</small></div>`).join('')}</div>`}
+  else{G.coins=G.coins||{};h+=`<b style="font-size:13px">🪙 מטבעות זהב (12 בכל עיר)</b>`+WORLD.map(c=>`<div class="prow"><span>${esc(c.n)}</span><b>${(G.coins[c.id]||[]).length}/12</b></div>`).join('')+`<b style="font-size:13px">🏁 שיאי מרוץ</b>`+WORLD.slice(3).map(c=>`<div class="prow"><span>${esc(c.n)}</span><b>${G.race&&G.race[c.id]?G.race[c.id].toFixed(1)+' שנ׳':'—'}</b></div>`).join('')}
+  const B=body(h);B.querySelectorAll('[data-qt]').forEach(x=>x.addEventListener('click',()=>{QTAB=x.dataset.qt;openApp('quests')}))};
+setTimeout(lvlHud,0);
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
