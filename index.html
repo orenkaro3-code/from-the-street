@@ -271,6 +271,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+.acctbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px;border-radius:12px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.4);font-size:13px}
+.accin{width:100%;box-sizing:border-box;padding:10px 12px;margin:4px 0;border-radius:10px;border:1px solid var(--line);background:#0b1220;color:var(--text);font-size:16px}.acccode{width:100%;box-sizing:border-box;height:90px;border-radius:10px;background:#0b1220;color:#a5b4fc;border:1px solid var(--line);font-family:var(--f-mono);font-size:11px;direction:ltr}
+.accmsg{font-weight:700;color:#a7f3d0;margin:4px 0}.accmsg.bad{color:#fca5a5}.frow{display:flex;flex-direction:column;background:rgba(255,255,255,.05);border-radius:8px;padding:6px 8px}.frow small{color:var(--muted)}
 .kcard.ph{background:linear-gradient(135deg,#111827,#374151 60%,#6b7280)}.pos{width:200px;margin:0 auto;background:#1f2937;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:inset 0 0 0 2px #374151}
 .pos-scr{background:#0b1220;color:#67e8f9;font-family:var(--f-mono);font-size:13px;border-radius:6px;padding:10px 6px;text-align:center;min-height:38px}.pos-scr.ok{color:#4ade80}.pos-scr.bad{color:#f87171}.pos-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.pos-keys i{height:12px;background:#4b5563;border-radius:3px}
 .korbox{display:flex;flex-direction:column;gap:8px}.kor-hd{font-weight:800;font-size:16px}.kor-row{display:flex;justify-content:space-between;align-items:center;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:8px 10px}.kor-row div{display:flex;flex-direction:column}.kor-row small{color:var(--muted)}
@@ -932,7 +935,7 @@ const waiters=[];function waitFor(fn){return new Promise(res=>waiters.push({fn,r
 const G={name:'אלי',day:0,money:12,role:'דר רחוב',wage:0,goodDays:0,stage:'title',clockMin:23*60+40,seenLobby:false,tier:0,
   hasPhone:false,phonePro:false,job:'dispatch',jobs:{dispatch:{wage:48,good:0,raiseGood:0,lastRaise:0,lvl:0},service:{wage:45,good:0,raiseGood:0,lastRaise:0,lvl:0}},
   energy:80,fridge:2,home:{},fines:[],ravkav:{has:false,bal:0},bank:{open:false,card:false,debt:0,limit:5000,num:''},tx:[],look:{shirt:0x5b8fc7,pants:0x2c3540},lastAsk:-1,nextJob:null,workDone:false};
-const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor'];
+const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor','friends'];
 function gameClock(){const m=Math.floor(G.clockMin)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function hud(){$('#dayK').textContent=G.day?('יום '+G.day):'לילה';$('#dayV').textContent=gameClock();$('#money').textContent=fmt(G.money)+(G.bank.card&&G.bank.debt?` · אשראי ${fmt(G.bank.debt)}`:'');$('#role').textContent=G.role;
   $('#energyV').textContent=Math.round(G.energy)+'%';$('#energyV').style.color=G.energy<20?'var(--red)':'';$('#phoneBtn').hidden=!G.hasPhone}
@@ -1038,7 +1041,7 @@ function openApp(id){const v=$('#pview'),T=$('#phoneTitle');v.innerHTML='';
   if(id==='ravkav'){const b=body(`<div class="card3d" style="background:linear-gradient(135deg,#15803d,#065f46)"><span>רב-קו אישי</span><span class="num">יתרה ₪${G.ravkav.bal}</span><span>${esc(G.name)}</span></div>${[30,50,100].map(v=>`<button class="pbtn" data-rk="${v}">לטעון ₪${v}</button>`).join('')}<div style="color:var(--muted)">הטעינה יורדת מהחשבון או מהאשראי. נסיעה באוטובוס ₪6, ברכבת ₪14.</div>`);
     b.querySelectorAll('[data-rk]').forEach(x=>x.addEventListener('click',()=>{const v=+x.dataset.rk;if(!G.bank.open&&!G.bank.card){toast('צריך חשבון בנק כדי לטעון באפליקציה');return}if(pay(v,'טעינת רב-קו',G.money>=v?'cash':'card')){G.ravkav.bal+=v;save();openApp('ravkav')}else toast('אין מספיק כסף')}));return}
   if(id==='fines'||id==='taxi'){phoneApp2(id,body);return}
-  if(['jobs','map','fam','house','vote','transit','fun','kor'].includes(id)){phoneApp3(id,body);return}
+  if(['jobs','map','fam','house','vote','transit','fun','kor','acct'].includes(id)){phoneApp3(id,body);return}
   if(id==='news'){body(['מחירי הדלק עולים ב-12 אגורות לליטר מחר בחצות.','ספקי החשמל הפרטיים מציעים מבצעי חורף: עד 10% הנחה למצטרפים.','עומסי תנועה כבדים בשדרות הים בשעות הבוקר.','רשת סלולר פלוס פותחת סניף חדש בקניון.','תחזית: גשם קל בערב, טמפרטורות 14–19 מעלות.'].map(t=>`<div class="prow"><span>${t}</span></div>`).join(''));return}
   if(id==='set'){const b=body(`<div class="prow"><span>קול לקוחות במוקד</span><button class="pbtn alt" id="vo">${voiceOn?'פועל':'כבוי'}</button></div><div class="prow"><span>מצלמה בנהיגה</span><button class="pbtn alt" id="cm">${camMode==='in'?'מבפנים':'מבחוץ'}</button></div>`);
     b.querySelector('#vo').addEventListener('click',()=>{voiceOn=!voiceOn;openApp('set')});b.querySelector('#cm').addEventListener('click',()=>{toggleCam();openApp('set')});return}
@@ -2985,6 +2988,69 @@ const _appK=V8.app;V8.app=function(id,body){_appK(id,body);const v=$('#pview');
   if(id==='vote'){const day=V8.isVoteDay&&V8.isVoteDay(),E=G.elect||{};const b=document.createElement('button');b.className='btn kor-go';b.style.margin='0 12px 12px';b.textContent=E.voted?'✓ כבר הצבעת':day?'🗳 להצביע עכשיו בטלפון':`🗳 ההצבעה בטלפון תיפתח ביום ${E.day||'הבחירות'}`;b.disabled=!!E.voted||!day;v.appendChild(b);
     b.addEventListener('click',()=>{$('#phone').hidden=true;player.lock=true;vote()})}
   if(id==='fam'&&(!G.fam.spouse||G.fam.kids.length<6)){const b=document.createElement('button');b.className='btn kor-go';b.style.margin='0 12px 12px';b.textContent=G.fam.spouse?'⚡ ילד נוסף בדקה':'⚡ להקים משפחה בדקה';v.appendChild(b);b.addEventListener('click',()=>{$('#phone').hidden=true;familyFast()})}};
+
+/* ====================== V8 PART L: player accounts (cloud save on Vercel), transfer code, friends ====================== */
+const API_URL=/vercel\.app$/.test(location.hostname)?'/api/account':'https://from-the-street.vercel.app/api/account';
+const SITE_URL='https://from-the-street.vercel.app';
+let ACC=null;try{ACC=JSON.parse(localStorage.getItem('fts_acct')||'null')}catch(e){}
+const CLOUD={dirty:false,t:0,last:null,err:null,busy:false};
+function accSet(a){ACC=a;try{a?localStorage.setItem('fts_acct',JSON.stringify(a)):localStorage.removeItem('fts_acct')}catch(e){}}
+async function api(action,data){const ctl=typeof AbortController!=='undefined'?new AbortController():null;const tm=setTimeout(()=>ctl&&ctl.abort(),9000);
+  try{const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({action},data)),signal:ctl&&ctl.signal});const j=await r.json().catch(()=>({}));j.status=r.status;return j}
+  catch(e){return{error:'net',status:0}}finally{clearTimeout(tm)}}
+function saveObj(){const o={v:2};SAVE_KEYS.forEach(k=>o[k]=G[k]);return o}
+function accStats(){const F=G.fam||{};return{name:G.name,day:G.day,money:Math.round(G.money||0),job:G.gen&&G.job==='gen'?G.gen.role:(G.role||''),city:G.house?cityName(G.house.city):'נווה-אור',spouse:F.spouse?F.spouse.name:'',kids:(F.kids||[]).length}}
+function transferCode(){const s=JSON.stringify({u:ACC.user,p:ACC.pin,s:saveObj()});return 'FTS1:'+btoa(unescape(encodeURIComponent(s)))}
+function readCode(c){try{c=String(c).trim();if(!c.startsWith('FTS1:'))return null;return JSON.parse(decodeURIComponent(escape(atob(c.slice(5)))))}catch(e){return null}}
+async function cloudPush(force){if(!ACC||CLOUD.busy)return;if(!force&&!CLOUD.dirty)return;CLOUD.busy=true;CLOUD.dirty=false;
+  let r=await api(ACC.pending?'register':'save',{user:ACC.user,pin:ACC.pin,save:saveObj(),stats:accStats()});
+  if(ACC.pending&&r.error==='taken')r=await api('save',{user:ACC.user,pin:ACC.pin,save:saveObj(),stats:accStats()});
+  CLOUD.busy=false;if(r.ok){if(ACC.pending){ACC.pending=false;accSet(ACC)}CLOUD.last=gameClock()+' · יום '+G.day;CLOUD.err=null}else{CLOUD.err=r.error==='net'?'אין חיבור לשרת (כאן אפשר להשתמש בקוד העברה)':r.error==='wrong'?'קוד סודי שגוי':'שגיאת שרת';if(r.error==='net')CLOUD.dirty=true}return r}
+function randName(){return 'player'+Math.floor(10000+Math.random()*89999)}
+async function autoAccount(){if(ACC)return;const a={user:randName(),pin:String(Math.floor(1000+Math.random()*9000)),pending:true};accSet(a);const r=await cloudPush(true);
+  await card('👤 נוצר לך משתמש!',`שם משתמש: <b dir="ltr">${esc(a.user)}</b>`,`קוד סודי: <b style="font-size:22px;letter-spacing:3px">${a.pin}</b><br>שמור/י אותם! המשחק שלך נשמר במשתמש ולא מתחיל מחדש. באתר <b dir="ltr">${SITE_URL.replace('https://','')}</b> לוחצים "התחברות" ומקלידים אותם כדי להמשיך מאותו מקום, ומשם אפשר להוסיף חברים.${r&&r.ok?'':'<br><small>לא הצלחתי להתחבר לשרת מכאן. באפליקציית "חשבון" בטלפון יש "קוד העברה" שמדביקים באתר.</small>'}`,'הבנתי')}
+const _save1=save;save=function(){_save1();if(ACC)CLOUD.dirty=true};
+const _tickL=V8.tick;V8.tick=function(dt){_tickL(dt);CLOUD.t+=dt;if(CLOUD.t>40){CLOUD.t=0;if(CLOUD.dirty)cloudPush()}};
+addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&ACC&&CLOUD.dirty)cloudPush()});
+/* account screen (title + phone) */
+function accUI(onDone){const ov=$('#ov');ov.hidden=false;let tab=ACC?'me':'login';
+  const done=()=>{ov.hidden=true;if(onDone)onDone()};
+  const draw=(msg)=>{const m=msg?`<p class="accmsg">${msg}</p>`:'';
+    if(tab==='me'&&ACC){$('#sheet').innerHTML=`<span class="eyebrow">👤 המשתמש שלך</span><h2 dir="ltr" style="text-align:right">${esc(ACC.user)}</h2>${m}
+      <div class="prow"><span>קוד סודי</span><b style="letter-spacing:3px">${esc(ACC.pin)}</b></div><div class="prow"><span>סנכרון</span><b>${ACC.pending?'ממתין לשרת':CLOUD.last?'נשמר '+esc(CLOUD.last):'מחובר'}</b></div>${CLOUD.err?`<p class="accmsg bad">${esc(CLOUD.err)}</p>`:''}
+      <div class="btns"><button class="btn primary" id="aSync">☁️ לשמור עכשיו</button><button class="btn" id="aCode">📋 קוד העברה לאתר</button><button class="btn" id="aOut" style="background:#334155">להתחבר למשתמש אחר</button></div><button class="btn" id="aX" style="background:#334155">סגור</button>`;
+      $('#aSync').onclick=async()=>{draw('שומר...');const r=await cloudPush(true);draw(r&&r.ok?'✓ נשמר בענן':'✕ '+(CLOUD.err||'לא נשמר'))};
+      $('#aCode').onclick=async()=>{const c=transferCode();let ok=false;try{await navigator.clipboard.writeText(c);ok=true}catch(e){}$('#sheet').innerHTML=`<span class="eyebrow">📋 קוד העברה</span><h2>מעבירים את המשחק לאתר</h2><p>באתר <b dir="ltr">${SITE_URL.replace('https://','')}</b>: "👤 התחברות" ← "יש לי קוד העברה" ← מדביקים.</p><textarea class="acccode" readonly>${c}</textarea><p class="accmsg">${ok?'✓ הקוד הועתק':'סמן/י את הקוד והעתק/י'}</p><button class="btn" id="aBack">חזרה</button>`;$('#sheet').querySelector('textarea').select();$('#aBack').onclick=()=>draw()};
+      $('#aOut').onclick=()=>{tab='login';draw()};$('#aX').onclick=done;return}
+    $('#sheet').innerHTML=`<span class="eyebrow">👤 משתמש</span><h2>${tab==='login'?'התחברות':tab==='new'?'משתמש חדש':'קוד העברה'}</h2>
+      <div class="jbtabs"><button data-t="login" class="${tab==='login'?'on':''}">התחברות</button><button data-t="new" class="${tab==='new'?'on':''}">משתמש חדש</button><button data-t="code" class="${tab==='code'?'on':''}">יש לי קוד העברה</button></div>${m}
+      ${tab==='code'?'<textarea class="acccode" id="aC" placeholder="FTS1:..."></textarea>':`<input class="accin" id="aU" dir="ltr" placeholder="שם משתמש (3-16 אותיות/מספרים)" maxlength="16" autocomplete="username"><input class="accin" id="aP" dir="ltr" inputmode="numeric" placeholder="קוד סודי · 4 ספרות" maxlength="8" type="password" autocomplete="current-password">`}
+      ${tab==='new'?'<p style="font-size:13px;color:var(--muted)">המשחק הנוכחי שלך יישמר במשתמש החדש. לא מתחילים מחדש.</p>':''}
+      <button class="btn primary" id="aGo">${tab==='login'?'להתחבר':tab==='new'?'ליצור משתמש':'לטעון את המשחק'}</button><button class="btn" id="aX" style="background:#334155">סגור</button>`;
+    $('#sheet').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;draw()});$('#aX').onclick=done;
+    $('#aGo').onclick=async()=>{const U=$('#aU')?$('#aU').value.trim().toLowerCase():'',P=$('#aP')?$('#aP').value.trim():'';
+      if(tab==='code'){const d=readCode($('#aC').value);if(!d){draw('✕ הקוד לא תקין');return}try{localStorage.setItem('fts_save',JSON.stringify(d.s))}catch(e){}accSet({user:d.u,pin:d.p,pending:true});draw('טוען...');
+        Object.assign(G,d.s);await cloudPush(true);draw('✓ המשחק נטען! מעביר...');setTimeout(()=>location.reload(),900);return}
+      if(!/^[a-z0-9_֐-׿]{3,16}$/.test(U)){draw('✕ שם משתמש: 3-16 אותיות או מספרים, בלי רווחים');return}if(!/^\d{4,8}$/.test(P)){draw('✕ קוד סודי: 4 ספרות');return}draw('...מתחבר');
+      if(tab==='new'){const s=G.day?saveObj():loadSave();const r=await api('register',{user:U,pin:P,save:s,stats:accStats()});if(r.ok){accSet({user:U,pin:P});tab='me';CLOUD.last='עכשיו';draw('✓ המשתמש נוצר והמשחק נשמר בו')}else draw(r.error==='taken'?'✕ השם תפוס, נסה/י שם אחר':r.error==='net'?'✕ אין חיבור לשרת. נסה/י באתר עצמו.':'✕ שגיאה');return}
+      const r=await api('login',{user:U,pin:P});if(!r.ok){draw(r.error==='wrong'?'✕ שם משתמש או קוד שגויים':r.error==='net'?'✕ אין חיבור לשרת':'✕ שגיאה');return}
+      accSet({user:U,pin:P});if(r.save){try{localStorage.setItem('fts_save',JSON.stringify(r.save))}catch(e){}}draw('✓ מחובר! טוען את המשחק שלך...');setTimeout(()=>location.reload(),900)}};draw()}
+const _title1=title;title=function(){_title1();const b=$('#sheet').querySelector('.btns');if(!b)return;const bar=document.createElement('div');bar.className='acctbar';
+  bar.innerHTML=ACC?`<span>👤 <b dir="ltr">${esc(ACC.user)}</b></span><button class="btn" id="accBtn">החשבון שלי</button>`:`<span>👤 יש לך משתמש? אפשר להמשיך מכל מכשיר</span><button class="btn" id="accBtn">התחברות / משתמש חדש</button>`;b.after(bar);
+  $('#accBtn').addEventListener('click',()=>accUI(()=>title()))};
+/* create an account automatically for everyone who plays (keeps the current game) */
+const _sd1=startDay;startDay=async function(){const r=await _sd1.apply(this,arguments);if(!ACC)setTimeout(()=>{if(!ACC)autoAccount()},2500);return r};
+/* phone app: account + friends */
+APPS.push({id:'acct',n:'חשבון',c:'#6366f1',i:'👤'});
+const _appL=V8.app;V8.app=function(id,body){if(id!=='acct'){_appL(id,body);return}G.friends=G.friends||[];
+  const B=body(ACC?`<div class="prow"><span>👤 <b dir="ltr">${esc(ACC.user)}</b></span><b>${ACC.pending?'⏳':'☁️'}</b></div><button class="pbtn" id="paMe">ניהול המשתמש · קוד העברה</button>
+    <b style="font-size:13px">חברים</b><div style="display:flex;gap:6px"><input class="accin" id="paF" dir="ltr" placeholder="שם משתמש של חבר" style="flex:1;margin:0"><button class="pbtn" id="paAdd">הוסף</button></div><div id="paList">${G.friends.length?'טוען...':'<div class="prow">עוד אין חברים. תשלח להם את האתר ותוסיף לפי שם משתמש.</div>'}</div>
+    <small style="color:var(--muted)">הזמנת חברים: <span dir="ltr">${SITE_URL.replace('https://','')}</span></small>`:`<div class="prow">אין לך משתמש עדיין</div><button class="pbtn" id="paMe">ליצור משתמש / להתחבר</button>`);
+  B.querySelector('#paMe').addEventListener('click',()=>{$('#phone').hidden=true;player.lock=true;accUI(()=>{player.lock=false})});
+  const add=B.querySelector('#paAdd');if(add)add.addEventListener('click',async()=>{const u=B.querySelector('#paF').value.trim().toLowerCase();if(!u||u===ACC.user||G.friends.includes(u))return;const r=await api('profile',{users:[u]});
+    if(r.ok&&r.profiles[0]&&!r.profiles[0].missing){G.friends.push(u);save();toast('נוסף/ה חבר/ה: '+u,'good');openApp('acct')}else toast(r.error==='net'?'אין חיבור לשרת':'לא מצאתי משתמש בשם הזה','bad')});
+  if(ACC&&G.friends.length)api('profile',{users:G.friends}).then(r=>{const L=B.querySelector('#paList');if(!L)return;if(!r.ok){L.innerHTML='<div class="prow">אין חיבור לשרת</div>';return}
+    L.innerHTML=r.profiles.map(p=>p.missing?`<div class="prow"><span dir="ltr">${esc(p.user)}</span><b>לא נמצא</b></div>`:`<div class="frow"><b>${esc(p.name||p.user)} <small dir="ltr">@${esc(p.user)}</small></b><small>יום ${p.day} · ${fmt(p.money)} · ${esc(p.job||'מחפש/ת עבודה')} · ${esc(p.city||'')}${p.spouse?' · נשוי/אה ל'+esc(p.spouse):''}${p.kids?' · '+p.kids+' ילדים':''}</small></div>`).join('')})};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
