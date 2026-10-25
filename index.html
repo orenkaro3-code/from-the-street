@@ -278,6 +278,9 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+#psens{flex-direction:row!important;gap:10px!important;align-items:center}.pscar{display:flex;flex-direction:column;align-items:center;gap:2px}.psrow{display:flex;gap:3px}.psrow i{width:20px;height:7px;border-radius:4px;background:#334155}.psrow i.l1{background:#22c55e}.psrow i.l2{background:#facc15}.psrow i.l3{background:#f97316}.psrow i.l4{background:#dc2626;box-shadow:0 0 8px #dc2626}.psbody{font-size:24px;line-height:1}
+.psinfo{display:flex;flex-direction:column;align-items:center}.psinfo b{font:700 18px var(--f-mono)}.psstop{background:#dc2626;color:#fff;font-weight:900;border-radius:6px;padding:1px 8px;animation:pop .4s ease infinite alternate}
+#apBtn{bottom:356px;inset-inline-end:16px;z-index:7}#apBtn.on{background:#2563eb;color:#fff}#parkBtn{bottom:190px;left:50%;transform:translateX(-50%);background:#2563eb;color:#fff;border:0;border-radius:22px;padding:10px 20px;font-weight:900;font-size:16px;cursor:pointer;z-index:8;animation:pop .6s ease infinite alternate}
 #gearBox{bottom:110px;inset-inline-end:16px;display:flex;gap:4px;background:rgba(11,20,28,.88);border:1px solid var(--line);border-radius:12px;padding:5px;z-index:7}#gearBox button{width:34px;height:34px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#94a3b8;font:800 16px var(--f-mono);cursor:pointer}#gearBox button.on{background:#16a34a;color:#fff;border-color:#4ade80}#gearBox button.r.on{background:#dc2626;border-color:#f87171}
 #psens{top:42%;left:50%;transform:translateX(-50%);background:rgba(11,20,28,.88);border-radius:12px;padding:6px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:7}.psbars{display:flex;gap:3px}.psbars i{width:26px;height:8px;border-radius:3px;background:#334155}.psbars i.on.l1{background:#22c55e}.psbars i.on.l2{background:#facc15}.psbars i.on.l3{background:#f97316}.psbars i.on.l4{background:#dc2626}#psens small{color:var(--muted);font-size:11px}
 #hornBtn{bottom:314px;inset-inline-end:16px;z-index:7}#busRadio{top:360px;left:10px;width:min(270px,62vw);background:rgba(6,20,12,.9);border:1px solid #16a34a;border-radius:10px;padding:8px;font-size:12px;display:flex;flex-direction:column;gap:3px;z-index:6;color:#bbf7d0}.stopreq{background:#dc2626;color:#fff;font-weight:900;text-align:center;border-radius:6px;padding:4px;font-size:16px;animation:pop .5s ease infinite alternate}
@@ -3800,6 +3803,60 @@ const _appV=V8.app;V8.app=function(id,body){if(id!=='taxi'){_appV(id,body);retur
 /* ---------- buttons while driving: horn ---------- */
 function driveBtns(){let b=$('#hornBtn');const on=player.mode==='drive'&&!!player.car;if(!b&&on){b=document.createElement('button');b.id='hornBtn';b.className='hud hudbtn';b.textContent='📯 צופר (H)';document.querySelector('#game').appendChild(b);b.addEventListener('click',honk)}if(b)b.hidden=!on}
 const _tickV=V8.tick;V8.tick=function(dt){_tickV(dt);HONKT=Math.max(0,HONKT-dt);try{gearHud();sensorTick(dt);busRadioUI();murmurTick(dt);taxiTick(dt);driveBtns()}catch(e){console.warn(e)}};
+
+/* ====================== V8 PART W: audible announcements (queue + chime), better 6-zone parking sensors, one-press auto-parking at stops, short bus autopilot ====================== */
+/* ---------- announcements: chime + voice, queued so nothing cuts anything off ---------- */
+const ANN={q:[],busy:false};
+function chime(kind){if(kind==='radio'){noiseBurst(.18,2500,1800,.03,'bandpass');tone(1200,.08,.03,'square',.18)}else{tone(784,.35,.05,'sine');tone(587,.5,.05,'sine',.32)}}
+function heVoice(){try{const vs=speechSynthesis.getVoices();return vs.find(v=>/^he|^iw/i.test(v.lang))||null}catch(e){return null}}
+function annNext(){if(ANN.busy||!ANN.q.length)return;const a=ANN.q.shift();ANN.busy=true;chime(a.kind);
+  const done=()=>{if(!ANN.busy)return;ANN.busy=false;setTimeout(annNext,250)};
+  setTimeout(()=>{try{if(!voiceOn||!window.speechSynthesis){setTimeout(done,1400);return}const u=new SpeechSynthesisUtterance(a.t);u.lang='he-IL';const v=heVoice();if(v)u.voice=v;u.rate=a.kind==='radio'?1.12:.95;u.pitch=a.kind==='radio'?.8:1.1;u.volume=1;
+    u.onend=done;u.onerror=done;speechSynthesis.speak(u);setTimeout(done,Math.max(2500,a.t.length*110))}catch(e){done()}},a.kind==='radio'?280:820)}
+function announce(t,kind){ANN.q.push({t,kind:kind||'pa'});if(ANN.q.length>4)ANN.q.splice(0,ANN.q.length-4);annNext()}
+sayTTS=function(t,gender){announce(t,gender==='m'?'radio':'pa')};
+const _blW=busLog;busLog=function(t,voice){_blW(t,null);if(voice)announce(voice,/מוקד/.test(t)?'radio':'pa');else if(/^📻/.test(t))announce(t.replace(/^📻\s*/,''),'radio')};
+/* ---------- parking sensors: 3 rear + 3 front zones, car diagram ---------- */
+function zoneDists(c){const f={x:Math.sin(c.yaw),z:Math.cos(c.yaw)},l={x:Math.cos(c.yaw),z:-Math.sin(c.yaw)};const L=c.kind==='bus'?5.6:c.kind==='van'?2.4:2.2,W=c.kind==='bus'?1.25:.95;
+  const probe=(fs,ls)=>{const px=c.x+f.x*fs+l.x*ls,pz=c.z+f.z*fs+l.z*ls;let best=9;const dirs=Math.sign(fs);
+    const consider=(qx,qz,pad)=>{const rel=((qx-c.x)*f.x+(qz-c.z)*f.z)*dirs;if(rel<L*.55)return;const d=Math.hypot(px-qx,pz-qz)-pad;if(d<best)best=d};
+    for(const b of cur.cols){const qx=Math.max(b.x0,Math.min(px,b.x1)),qz=Math.max(b.z0,Math.min(pz,b.z1));consider(qx,qz,0)}
+    for(const o of cur.cars||[]){if(o===c||!o.g)continue;consider(o.x!=null?o.x:o.g.position.x,o.z!=null?o.z:o.g.position.z,1.4)}
+    for(const n of cur.npcs||[]){if(!n.h||n.static)continue;consider(n.x,n.z,.3)}return Math.max(0,best)};
+  return{rl:probe(-L,W*.8),rc:probe(-L,0),rr:probe(-L,-W*.8),fl:probe(L,W*.8),fc:probe(L,0),fr:probe(L,-W*.8)}}
+const lvOf=d=>d<.4?4:d<.9?3:d<1.6?2:d<2.6?1:0;
+sensorTick=function(dt){const c=player.car;let s=$('#psens');const rev=c&&(gearOf(c)==='R'||c.speed<-.2),slowFwd=c&&gearOf(c)==='D'&&Math.abs(c.speed)<3.5;
+  const on=player.mode==='drive'&&c&&(rev||slowFwd)&&cur&&!cur.indoor&&!AP;if(!s&&on){s=document.createElement('div');s.id='psens';s.className='hud';document.querySelector('#game').appendChild(s)}
+  if(!on){if(s)s.hidden=true;return}const z=zoneDists(c);const back=Math.min(z.rl,z.rc,z.rr),front=Math.min(z.fl,z.fc,z.fr);const near=rev?back:front;if(!rev&&front>2.6){s.hidden=true;return}s.hidden=false;
+  const cls=d=>'z l'+lvOf(d);s.innerHTML=`<div class="pscar"><div class="psrow">${['fl','fc','fr'].map(k=>`<i class="${cls(z[k])}"></i>`).join('')}</div><div class="psbody">${c.kind==='bus'?'🚌':'🚗'}</div><div class="psrow">${['rl','rc','rr'].map(k=>`<i class="${cls(z[k])}"></i>`).join('')}</div></div>
+    <div class="psinfo"><b>${near<2.6?near.toFixed(1)+' מ׳':'פנוי'}</b><small>${rev?'חיישני רוורס':'חיישנים קדמיים'}</small>${near<.4?'<span class="psstop">עצור!</span>':''}</div>`;
+  const lv=lvOf(near);if(lv===4){PS.t-=dt;if(PS.t<=0){PS.t=.08;tone(rev?1300:1700,.075,.05,'square')}}else if(lv){PS.t-=dt;if(PS.t<=0){PS.t=[0,.75,.4,.18][lv];tone(rev?1300:1700,.065,.045,'square')}}};
+/* ---------- one-press auto parking at a bus stop ---------- */
+let PARK=null;
+function nearestStopFor(c){if(!BUSJOB||c!==OUT.bus)return null;const s=STOPS[BUSJOB.i];if(!s||BUSJOB.back)return null;const d=Math.hypot(c.x-s.px,c.z-s.pz);return d<28?{s,d}:null}
+function startAutoPark(c,s){const a1=s.ry+Math.PI/2,a2=s.ry-Math.PI/2;const diff=a=>{let d=a-c.yaw;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return Math.abs(d)};const yaw=diff(a1)<diff(a2)?a1:a2;
+  PARK={c,x0:c.x,z0:c.z,y0:c.yaw,x1:s.px,z1:s.pz,y1:c.yaw+((()=>{let d=yaw-c.yaw;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return d})()),t:0,dur:2.2+Math.min(3,Math.hypot(s.px-c.x,s.pz-c.z)/8),s};
+  if(AP)stopAP();toast('🅿 חניה אוטומטית בתחנה...','good');tone(660,.1,.04);tone(880,.12,.04,'sine',.12)}
+function parkTick(dt){if(!PARK)return;const P=PARK,c=P.c;if(player.car!==c){PARK=null;return}P.t+=dt;const k=Math.min(1,P.t/P.dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+  const nx=P.x0+(P.x1-P.x0)*e,nz=P.z0+(P.z1-P.z0)*e;c.speed=0;c.x=nx;c.z=nz;c.yaw=P.y0+(P.y1-P.y0)*e;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;player.x=c.x;player.z=c.z;
+  if(k>=1){c.speed=0;c.gear='P';PARK=null;gearHud();tone(500,.1,.04);toast('✓ חנית יפה בתחנה · לפתוח דלתות (O)','good');if(BUSJOB&&BUSJOB.stopReq){BUSJOB.stopReq=false}}}
+const _sgW=setGear;setGear=function(g){const c=player.car;if(g==='P'&&c&&Math.abs(c.speed)>.3){const ns=nearestStopFor(c);if(ns&&Math.abs(c.speed)<9){startAutoPark(c,ns.s);return}}return _sgW(g)};
+/* ---------- short autopilot for the bus (max 20 s, then a 40 s rest) ---------- */
+let AP=null,APCOOL=0;
+function startAP(){const c=player.car;if(!c||c!==OUT.bus||!BUSJOB){toast('נהיגה אוטומטית זמינה רק באוטובוס בקו 18','bad');return}if(APCOOL>0){toast(`הנהיגה האוטומטית תהיה זמינה שוב בעוד ${Math.ceil(APCOOL)} שנ׳`,'bad');return}
+  const s=BUSJOB.back?{px:DEPOT.gate.x,pz:DEPOT.gate.z}:STOPS[BUSJOB.i];const pts=route(c.x,c.z,s.px,s.pz);pts.push({x:s.px,z:s.pz});AP={c,pts,i:0,t:20};c.gear='D';gearHud();toast('🤖 נהיגה אוטומטית · 20 שניות · W/S/הגה כדי לקחת שליטה','good');announce('נהיגה אוטומטית הופעלה','pa')}
+function stopAP(msg){if(!AP)return;AP=null;APCOOL=40;if(msg)toast(msg)}
+const _inW=input;input=function(){const r=_inW();if(AP&&player.mode==='drive'){const raw=_inpV();if(Math.abs(raw.x)>.3||Math.abs(raw.y)>.3){stopAP('🙌 לקחת שליטה על ההגה');return r}return Object.assign({},r,{x:0,y:0})}return r};
+function apTick(dt){dt=Math.max(0,dt);APCOOL=Math.max(0,APCOOL-dt);if(!AP)return;const A=AP,c=A.c;if(player.car!==c){AP=null;return}A.t-=dt;if(A.t<=0){stopAP('⏱ נגמר זמן הנהיגה האוטומטית · קח/י את ההגה!');beep(300,.3,'square');return}
+  let p=A.pts[A.i];while(p&&Math.hypot(p.x-c.x,p.z-c.z)<3.5){A.i++;p=A.pts[A.i]}if(!p){c.speed*=.9;const ns=nearestStopFor(c);if(ns){AP=null;APCOOL=20;startAutoPark(c,ns.s)}else stopAP('🤖 הגעת · נהיגה אוטומטית כובתה');return}
+  let dy=Math.atan2(p.x-c.x,p.z-c.z)-c.yaw;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;c.yaw+=dy*Math.min(1,dt*2.2);const want=Math.abs(dy)>.5?4:Math.hypot(p.x-c.x,p.z-c.z)<10&&A.i>=A.pts.length-1?4:9.5;c.speed+=(want-c.speed)*Math.min(1,dt*1.5);c.steerVis=Math.max(-1,Math.min(1,dy*2))}
+function apUI(){let b=$('#apBtn');const on=player.mode==='drive'&&player.car===OUT.bus&&!!BUSJOB;if(!b&&on){b=document.createElement('button');b.id='apBtn';b.className='hud hudbtn';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>AP?stopAP('🙌 לקחת שליטה'):startAP())}
+  if(b){b.hidden=!on;b.textContent=AP?`🤖 אוטומטי · ${Math.ceil(AP.t)} שנ׳ (T)`:APCOOL>0?`🤖 זמין בעוד ${Math.ceil(APCOOL)}`:'🤖 נהיגה אוטומטית (T)';b.classList.toggle('on',!!AP)}
+  let pb=$('#parkBtn');const pon=on&&!!nearestStopFor(player.car)&&!PARK&&gearOf(player.car)!=='P';if(!pb&&pon){pb=document.createElement('button');pb.id='parkBtn';pb.className='hud';pb.textContent='🅿 חניה בתחנה (P)';document.querySelector('#game').appendChild(pb);pb.addEventListener('click',()=>{const ns=nearestStopFor(player.car);if(ns)startAutoPark(player.car,ns.s)})}if(pb)pb.hidden=!pon}
+addEventListener('keydown',e=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;if((e.key==='t'||e.key==='T'||e.key==='א')&&player.mode==='drive')AP?stopAP('🙌 לקחת שליטה'):startAP()});
+const _tickW=V8.tick;V8.tick=function(dt){_tickW(dt);try{parkTick(dt);apTick(dt);apUI()}catch(e){console.warn(e)}};
+const _sbW=sitBus;sitBus=async function(){await _sbW.apply(this,arguments);if(RIDE&&RIDE.to)announce('התחנה הבאה: '+RIDE.to.n,'pa')};
+const _erW=endRide;endRide=async function(){if(RIDE&&RIDE.to)announce('תחנת '+RIDE.to.n,'pa');return _erW.apply(this,arguments)};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
