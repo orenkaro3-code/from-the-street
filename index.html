@@ -278,6 +278,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+#pipBox{position:absolute;inset:0;pointer-events:none;z-index:5}.pipf{position:absolute;border:2px solid rgba(255,255,255,.85);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.45)}.pipf span{position:absolute;top:3px;right:6px;font-size:11px;font-weight:700;background:rgba(0,0,0,.6);color:#fff;padding:1px 7px;border-radius:6px}
+#pipBtn{bottom:272px;inset-inline-end:16px;z-index:7}#busPanel{top:86px;left:10px;width:min(270px,62vw);background:rgba(11,20,28,.9);border:1px solid #16a34a;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:5px;font-size:13px;z-index:6}
+.bprow{display:flex;justify-content:space-between;gap:8px}.bprow span{color:var(--muted)}.bphint{background:#facc15;color:#111;font-weight:800;border-radius:8px;padding:4px 8px;text-align:center;animation:pop .6s ease infinite alternate}.bpval{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.bpval small{width:100%;color:var(--muted)}
+.vok{color:#4ade80}.vno{color:#f87171}.bpval span{background:#0b1220;border-radius:6px;padding:2px 6px;font-size:12px}.bpbtns{display:flex;gap:6px}.bpbtns button{flex:1;background:#1f2937;color:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;font-weight:700;cursor:pointer;font-size:12px}
 #skipBtn{white-space:nowrap}#skipDlg{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:rgba(0,0,0,.45)}.skipbox{background:#0f172a;border:1px solid var(--line);border-radius:16px;padding:18px;max-width:340px;margin:16px;display:flex;flex-direction:column;gap:8px;text-align:center}.skipbox b{font-size:19px}.skipbtns{display:flex;gap:8px;justify-content:center}
 .mqo{display:flex;flex-direction:column;gap:8px}.mqo .btn{text-align:start;white-space:normal}.mqo .btn.on{background:#0f766e}.mq-ok{background:#16a34a!important;color:#fff}.mq-bad{background:#dc2626!important;color:#fff}
 .mqgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;font-size:26px;text-align:center;background:#0b1220;border-radius:10px;padding:8px}.mqcode{font-family:var(--f-mono);font-size:32px;letter-spacing:4px;text-align:center;background:#0b1220;color:#67e8f9;border-radius:10px;padding:10px;direction:ltr}
@@ -3642,6 +3646,66 @@ async function doSkip(story){try{if(SCRIDE)endScooter(true)}catch(e){}try{if(WK)
   await fade(true);await card('⏭ דילגת על היום','לילה טוב',`יום ${G.day} נגמר. מחר בבוקר מתחילים מחדש עם אנרגיה מלאה.`,'להתעורר');G.day++;G.workDone=false;G.energy=100;
   if(G.nextJob){G.job=G.nextJob;G.nextJob=null;G.wage=G.jobs[G.job].wage;G.role=JOBS[G.job].titles[G.jobs[G.job].lvl]}save();startDay()}
 const _tickT=V8.tick;V8.tick=function(dt){_tickT(dt);skipUI()};
+
+/* ====================== V8 PART U: see the road from the bus cab, rear + side cameras in every vehicle, bus driver console with doors & validator ====================== */
+/* --- bus: keep a handle on the windshield (it blocked the view from inside) + add doors and a cabin with passengers --- */
+const _mbU=makeBus;makeBus=function(opt){const v=_mbU(opt);const k=v.g.children;v.front=k[2];v.win=k[1];
+  v.doors=[];for(const z of[4.55,.6]){const d=box(.06,2.25,1.1,M(0x1c2b38,{roughness:.15,metalness:.6}));d.position.set(-1.27,1.55,z);d.userData.z0=z;v.g.add(d);v.doors.push(d)}v.doorOpen=0;return v};
+function busCabin(v){if(v.cabin)return v.cabin;const c=G_();c.visible=false;const fab=M(0x1d4ed8,{roughness:.95});
+  for(let z=-4.6;z<=2.6;z+=1.1)for(const x of[-.75,.75]){if(x<0&&z>1.8)continue;add(c,box(.7,.45,.55,fab),x,.75,z);add(c,box(.7,.6,.1,fab),x,1.2,z-.25)}
+  for(let z=-4;z<=3;z+=2)add(c,box(.05,2.4,.05,0xfacc15),-.35,1.6,z);add(c,box(2.3,.05,10.6,M(0x4b5563)),0,.42,0);
+  const drv=human({shirt:0xf1f5f9,pants:0x1f2937,hair:0x1a1410,skin:0xc9956b,badge:1});drv.sit=true;animHuman(drv,0,0);drv.g.position.set(.6,.35,4.3);c.add(drv.g);c.driver=drv;
+  c.pax=[];for(let i=0;i<14;i++){const x=i%2?.75:-.75,z=-4.6+Math.floor(i/2)*1.1;if(x<0&&z>1.8)continue;const h=human(pick(PED));h.sit=true;animHuman(h,0,0);h.g.position.set(x,.35,z-.05);h.g.visible=false;c.add(h.g);c.pax.push(h)}
+  v.g.add(c);v.cabin=c;return c}
+/* --- picture-in-picture cameras: rear, left, right (+ cabin camera on the bus) --- */
+let CAMSON=true;try{CAMSON=localStorage.getItem('fts_cams')!=='0'}catch(e){}
+const PIP={rear:new THREE.PerspectiveCamera(58,2.2,.1,500),left:new THREE.PerspectiveCamera(55,1.5,.1,400),right:new THREE.PerspectiveCamera(55,1.5,.1,400),cabin:new THREE.PerspectiveCamera(70,1.5,.05,60)};
+function pipRects(){const sz=renderer.getSize(new THREE.Vector2()),W=sz.x,H=sz.y;const rw=Math.min(340,W*.34),rh=rw/2.2,sw=Math.min(240,W*.24),sh=sw/1.5;
+  const r={rear:{x:(W-rw)/2,y:86,w:rw,h:rh},left:{x:10,y:H*.52,w:sw,h:sh},right:{x:W-sw-10,y:H*.52,w:sw,h:sh}};if(BUSJOB&&player.car===OUT.bus)r.cabin={x:W-sw-10,y:H*.52-sh-10,w:sw,h:sh};return{r,W,H}}
+function aimPip(c){const yaw=c.yaw,f={x:Math.sin(yaw),z:Math.cos(yaw)},l={x:Math.cos(yaw),z:-Math.sin(yaw)};const bus=c.kind==='bus',L=bus?5.6:c.kind==='van'?2.4:2.15,Wd=bus?1.3:1,yh=bus?2.6:1.25;
+  PIP.rear.position.set(c.x-f.x*(L+.15),yh,c.z-f.z*(L+.15));PIP.rear.lookAt(c.x-f.x*(L+14),yh*.45,c.z-f.z*(L+14));
+  for(const [k,s] of[['left',1],['right',-1]]){const cam=PIP[k];const px=c.x+l.x*s*(Wd+.15)+f.x*(bus?4:1),pz=c.z+l.z*s*(Wd+.15)+f.z*(bus?4:1);cam.position.set(px,yh*.85,pz);cam.lookAt(px-f.x*14+l.x*s*2.4,yh*.35,pz-f.z*14+l.z*s*2.4)}
+  if(bus){PIP.cabin.position.set(c.x+f.x*5.2-l.x*.9,3,c.z+f.z*5.2-l.z*.9);PIP.cabin.lookAt(c.x-f.x*3+l.x*.2,1.3,c.z-f.z*3+l.z*.2)}}
+function pipFrames(rects){let box_=$('#pipBox');if(!box_){box_=document.createElement('div');box_.id='pipBox';document.querySelector('#game').appendChild(box_)}
+  if(!rects){box_.hidden=true;return}box_.hidden=false;const lab={rear:'📷 מצלמה אחורית',left:'◀ צד שמאל',right:'צד ימין ▶',cabin:'🎥 תא הנוסעים'};const key=JSON.stringify(rects);if(box_._k===key)return;box_._k=key;
+  box_.innerHTML=Object.entries(rects).map(([k,r])=>`<div class="pipf" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px"><span>${lab[k]}</span></div>`).join('')}
+function renderInsets(){const c=player.car;if(!CAMSON||GFX==='low'||player.mode!=='drive'||!c||!cur||cur.indoor){pipFrames(null);return}
+  const {r,H}=pipRects();aimPip(c);for(const k in r)PIP[k].aspect=r[k].w/r[k].h,PIP[k].updateProjectionMatrix();pipFrames(r);
+  const sa=renderer.shadowMap.autoUpdate,ac=renderer.autoClear;renderer.shadowMap.autoUpdate=false;renderer.autoClear=false;renderer.setScissorTest(true);
+  const cock=c.cock&&c.cock.visible;if(c.cock)c.cock.visible=false;const fr=c.front&&c.front.visible;if(c.front)c.front.visible=true;
+  for(const k in r){const R_=r[k];if(k==='cabin'){const cb=busCabin(c);cb.visible=true;cb.pax.forEach((h,i)=>h.g.visible=i<Math.min(cb.pax.length,(BUSJOB&&BUSJOB.pax)||0));if(c.win)c.win.visible=false}
+    renderer.setViewport(R_.x,H-R_.y-R_.h,R_.w,R_.h);renderer.setScissor(R_.x,H-R_.y-R_.h,R_.w,R_.h);renderer.clear(true,true,false);renderer.render(cur.s,PIP[k]);
+    if(k==='cabin'){c.cabin.visible=false;if(c.win)c.win.visible=true}}
+  if(c.cock)c.cock.visible=cock;if(c.front)c.front.visible=fr;const sz=renderer.getSize(new THREE.Vector2());renderer.setScissorTest(false);renderer.setViewport(0,0,sz.x,sz.y);renderer.autoClear=ac;renderer.shadowMap.autoUpdate=sa}
+const _rfU=renderFrame;renderFrame=function(){_rfU();try{renderInsets()}catch(e){console.warn(e);CAMSON=false}};
+/* windshield hidden while the driver sits inside → the road is visible */
+const _tickU=V8.tick;V8.tick=function(dt){_tickU(dt);const c=player.car;
+  for(const b of[OUT&&OUT.bus,c&&c.kind==='bus'?c:null])if(b&&b.front){const inside=player.mode==='drive'&&player.car===b&&camMode==='in';b.front.visible=!inside}
+  for(const b of[OUT&&OUT.bus])if(b&&b.doors){const t=BUSJOB&&BUSJOB.doors?1:0;b.doorOpen+=(t-b.doorOpen)*Math.min(1,dt*4);b.doors.forEach((d,i)=>d.position.z=d.userData.z0+(i?1:-1)*1.05*b.doorOpen)}
+  camBtnUI();busPanel()};
+function camBtnUI(){let b=$('#pipBtn');const show=player.mode==='drive'&&!!player.car&&GFX!=='low';if(!b&&show){b=document.createElement('button');b.id='pipBtn';b.className='hud hudbtn';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>{CAMSON=!CAMSON;try{localStorage.setItem('fts_cams',CAMSON?'1':'0')}catch(e){}toast(CAMSON?'📷 מצלמות פועלות':'📷 מצלמות כבויות')})}
+  if(b){b.hidden=!show;b.textContent=CAMSON?'📷 מצלמות ✓':'📷 מצלמות'}}
+/* --- bus driver console: next stop, turns, doors, validator --- */
+const PNAMES=['משה','רחל','דוד','שרה','יוסי','מיכל','אבי','נועה','חיים','ליאת','עומר','דנה','איתי','רונית','סאמי','ויקה'];
+function busDoors(){const J=BUSJOB;if(!J||player.car!==OUT.bus)return;if(Math.abs(OUT.bus.speed)>1){toast('קודם לעצור את האוטובוס','bad');return}J.doors=!J.doors;beep(J.doors?520:380,.18,'square');setTimeout(()=>beep(J.doors?620:300,.12,'square'),160);
+  toast(J.doors?'🚪 הדלתות נפתחו':'🚪 הדלתות נסגרו',J.doors?'good':'');if(!J.doors&&J.served){const miss=(J.val||[]).filter(p=>!p.ok).length;if(miss){J.nofare+=miss;toast(`${miss} נוסעים נסעו בלי לתקף`,'bad')}}}
+function busAsk(){const J=BUSJOB;if(!J||!J.val)return;const bad=J.val.filter(p=>!p.ok);if(!bad.length){toast('כולם תיקפו ✓');return}bad.forEach(p=>{p.ok=true;J.asked++});beep(1400,.06);setTimeout(()=>beep(1400,.06),110);toast(`ביקשת לתקף · ${bad.length} נוסעים תיקפו עכשיו`,'good')}
+addEventListener('keydown',e=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;if(!BUSJOB)return;if(e.key==='o'||e.key==='O'||e.key==='ם')busDoors();if(e.key==='v'||e.key==='V'||e.key==='ה')busAsk()});
+updateBusJob=function(dt){const J=BUSJOB;if(!J||player.car!==OUT.bus)return;J.t+=dt;const b=OUT.bus;J.nofare=J.nofare||0;J.asked=J.asked||0;
+  if(J.doors&&Math.abs(b.speed)>1.6){J.dw=(J.dw||0)-dt;if(J.dw<=0){J.dw=3;J.crash++;toast('⚠ נוסע/ת עם דלתות פתוחות! לסגור (O)','bad');beep(200,.3,'square')}}
+  if(!J.back){const s=STOPS[J.i];const near=Math.hypot(b.x-s.px,b.z-s.pz)<8&&Math.abs(b.speed)<1;J.atStop=near;
+    if(near&&J.doors&&!J.served){J.st=(J.st||0)+dt;if(J.st>2.2){J.st=0;const off=Math.min(J.pax,Math.floor(rand(0,6))),on=Math.floor(rand(2,8));J.pax+=on-off;J.val=[];for(let i=0;i<on;i++)J.val.push({n:pick(PNAMES),ok:Math.random()>.18});J.served=true;J.offN=off;
+      beep(700,.06);toast(`תחנת ${s.n}: ירדו ${off}, עלו ${on} · לסגור דלתות (O) ולהמשיך`,'good')}}
+    if(J.served&&!J.doors){J.served=false;J.i++;busTarget()}}
+  else if(Math.hypot(b.x-DEPOT.x,b.z-DEPOT.z)<12&&Math.abs(b.speed)<1&&!J.doors){const S=BUSJOB;BUSJOB=null;setNav(null);exitCar();const good=S.crash<=3&&S.t<480&&S.nofare<=3;
+    endWork([['תחנות',STOPS.length],['תאונות / דלתות פתוחות',S.crash],['ביקשת לתקף',S.asked],['נסעו בלי לתקף',S.nofare],['זמן מסלול',Math.round(S.t/60*8)+' דק׳']],good?120:30,good,good?'סדרן הדפו: "נסיעה חלקה, כולם תיקפו. כל הכבוד!"':'סדרן הדפו: "שים לב לדלתות ולתיקופים מחר."')}};
+function busPanel(){let p=$('#busPanel');const J=BUSJOB,on=J&&player.car===OUT.bus;if(!p){if(!on)return;p=document.createElement('div');p.id='busPanel';p.className='hud';document.querySelector('#game').appendChild(p);
+    p.addEventListener('click',e=>{const t=e.target.closest('[data-bp]');if(!t)return;if(t.dataset.bp==='door')busDoors();else busAsk()})}
+  if(!on){p.hidden=true;return}p.hidden=false;const s=STOPS[J.i],b=OUT.bus;const dist=s?Math.round(Math.hypot(b.x-s.px,b.z-s.pz)):0;const turn=!$('#nav').hidden?($('#navS').textContent+' · '+$('#navD').textContent):'ישר';
+  const val=(J.val||[]).map(x=>`<span class="${x.ok?'vok':'vno'}">${x.ok?'✓':'✗'} ${esc(x.n)}</span>`).join('');
+  const html=`<b>🚌 קו 18 · נווה-אור</b><div class="bprow"><span>התחנה הבאה</span><b>${s?esc(s.n)+' · '+dist+' מ׳':'חזרה לדפו'}</b></div><div class="bprow"><span>↱ הפנייה</span><b>${esc(turn)}</b></div><div class="bprow"><span>👥 נוסעים</span><b>${J.pax}</b></div>
+   <div class="bprow"><span>🚪 דלתות</span><b class="${J.doors?'vno':'vok'}">${J.doors?'פתוחות':'סגורות'}</b></div>${J.atStop&&!J.doors&&!J.served?'<div class="bphint">עצרת בתחנה · לפתוח דלתות (O)</div>':''}
+   ${val?`<div class="bpval"><small>מתקף · עלו בתחנה:</small>${val}</div>`:''}<div class="bpbtns"><button data-bp="door">🚪 ${J.doors?'לסגור':'לפתוח'} (O)</button><button data-bp="ask">🎫 בקשה לתקף (V)</button></div>`;if(p._h!==html){p._h=html;p.innerHTML=html}}
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
