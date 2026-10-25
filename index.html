@@ -278,6 +278,10 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+#gearBox{bottom:110px;inset-inline-end:16px;display:flex;gap:4px;background:rgba(11,20,28,.88);border:1px solid var(--line);border-radius:12px;padding:5px;z-index:7}#gearBox button{width:34px;height:34px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#94a3b8;font:800 16px var(--f-mono);cursor:pointer}#gearBox button.on{background:#16a34a;color:#fff;border-color:#4ade80}#gearBox button.r.on{background:#dc2626;border-color:#f87171}
+#psens{top:42%;left:50%;transform:translateX(-50%);background:rgba(11,20,28,.88);border-radius:12px;padding:6px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:7}.psbars{display:flex;gap:3px}.psbars i{width:26px;height:8px;border-radius:3px;background:#334155}.psbars i.on.l1{background:#22c55e}.psbars i.on.l2{background:#facc15}.psbars i.on.l3{background:#f97316}.psbars i.on.l4{background:#dc2626}#psens small{color:var(--muted);font-size:11px}
+#hornBtn{bottom:314px;inset-inline-end:16px;z-index:7}#busRadio{top:360px;left:10px;width:min(270px,62vw);background:rgba(6,20,12,.9);border:1px solid #16a34a;border-radius:10px;padding:8px;font-size:12px;display:flex;flex-direction:column;gap:3px;z-index:6;color:#bbf7d0}.stopreq{background:#dc2626;color:#fff;font-weight:900;text-align:center;border-radius:6px;padding:4px;font-size:16px;animation:pop .5s ease infinite alternate}
+#taxiPanel{top:86px;left:10px;width:min(250px,60vw);background:rgba(11,20,28,.92);border:2px solid #facc15;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:5px;font-size:13px;z-index:6}.taximeter{font:700 30px var(--f-mono);color:#f87171;background:#0b0b0b;border-radius:8px;text-align:center;padding:4px;direction:ltr}
 #pipBox{position:absolute;inset:0;pointer-events:none;z-index:5}.pipf{position:absolute;border:2px solid rgba(255,255,255,.85);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.45)}.pipf span{position:absolute;top:3px;right:6px;font-size:11px;font-weight:700;background:rgba(0,0,0,.6);color:#fff;padding:1px 7px;border-radius:6px}
 #pipBtn{bottom:272px;inset-inline-end:16px;z-index:7}#busPanel{top:86px;left:10px;width:min(270px,62vw);background:rgba(11,20,28,.9);border:1px solid #16a34a;border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:5px;font-size:13px;z-index:6}
 .bprow{display:flex;justify-content:space-between;gap:8px}.bprow span{color:var(--muted)}.bphint{background:#facc15;color:#111;font-weight:800;border-radius:8px;padding:4px 8px;text-align:center;animation:pop .6s ease infinite alternate}.bpval{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.bpval small{width:100%;color:var(--muted)}
@@ -1061,7 +1065,7 @@ function openApp(id){const v=$('#pview'),T=$('#phoneTitle');v.innerHTML='';
   if(id==='ravkav'){const b=body(`<div class="card3d" style="background:linear-gradient(135deg,#15803d,#065f46)"><span>רב-קו אישי</span><span class="num">יתרה ₪${G.ravkav.bal}</span><span>${esc(G.name)}</span></div>${[30,50,100].map(v=>`<button class="pbtn" data-rk="${v}">לטעון ₪${v}</button>`).join('')}<div style="color:var(--muted)">הטעינה יורדת מהחשבון או מהאשראי. נסיעה באוטובוס ₪6, ברכבת ₪14.</div>`);
     b.querySelectorAll('[data-rk]').forEach(x=>x.addEventListener('click',()=>{const v=+x.dataset.rk;if(!G.bank.open&&!G.bank.card){toast('צריך חשבון בנק כדי לטעון באפליקציה');return}if(pay(v,'טעינת רב-קו',G.money>=v?'cash':'card')){G.ravkav.bal+=v;save();openApp('ravkav')}else toast('אין מספיק כסף')}));return}
   if(id==='fines'||id==='taxi'){phoneApp2(id,body);return}
-  if(['jobs','map','fam','house','vote','transit','fun','kor','acct','quests'].includes(id)){phoneApp3(id,body);return}
+  if(['jobs','map','fam','house','vote','transit','fun','kor','acct','quests','taxi'].includes(id)){phoneApp3(id,body);return}
   if(id==='news'){body(['מחירי הדלק עולים ב-12 אגורות לליטר מחר בחצות.','ספקי החשמל הפרטיים מציעים מבצעי חורף: עד 10% הנחה למצטרפים.','עומסי תנועה כבדים בשדרות הים בשעות הבוקר.','רשת סלולר פלוס פותחת סניף חדש בקניון.','תחזית: גשם קל בערב, טמפרטורות 14–19 מעלות.'].map(t=>`<div class="prow"><span>${t}</span></div>`).join(''));return}
   if(id==='set'){const b=body(`<div class="prow"><span>קול לקוחות במוקד</span><button class="pbtn alt" id="vo">${voiceOn?'פועל':'כבוי'}</button></div><div class="prow"><span>מצלמה בנהיגה</span><button class="pbtn alt" id="cm">${camMode==='in'?'מבפנים':'מבחוץ'}</button></div>`);
     b.querySelector('#vo').addEventListener('click',()=>{voiceOn=!voiceOn;openApp('set')});b.querySelector('#cm').addEventListener('click',()=>{toggleCam();openApp('set')});return}
@@ -3276,7 +3280,7 @@ function radioSet(i){RADIO=i;if(RAD){clearInterval(RAD.iv);RAD=null}const S=STAT
   RAD={iv:setInterval(()=>{if(player.mode!=='drive'||muteEng){return}const t=AC.currentTime;const note=(deg,oct,dur,vol,wave)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=wave;o.frequency.value=S.root*Math.pow(2,(S.sc[deg%5]+12*(oct+Math.floor(deg/5)))/12);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.02)};
     if(step%2===0)note(0,-1,.35,.03,'sine');if(Math.random()<.85)note(pat[step%8]+(step%16>7?1:0),0,.22,.018,S.wave);if(step%4===2)note(4,1,.1,.006,'square');step++},60000/S.bpm/2)}}
 function radioUI(){let b=$('#radioBtn');const on=player.mode==='drive';if(!b&&on){b=document.createElement('button');b.id='radioBtn';b.className='hud hudbtn';b.textContent='📻 רדיו';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>radioSet((RADIO+1)%STATIONS.length))}if(b)b.hidden=!on}
-addEventListener('keydown',e=>{if((e.key==='r'||e.key==='R'||e.key==='ר')&&player.mode==='drive'&&document.activeElement.tagName!=='INPUT')radioSet((RADIO+1)%STATIONS.length)});
+addEventListener('keydown',e=>{if(false&&player.mode==='drive'&&document.activeElement.tagName!=='INPUT')radioSet((RADIO+1)%STATIONS.length)});
 /* --- per-frame: distances, coins, events, races, rain, achievements --- */
 let LASTP=null,ACHT=0;
 const _tickN=V8.tick;V8.tick=function(dt){_tickN(dt);if(!cur||!player.h)return;
@@ -3542,7 +3546,7 @@ function ensureMyCar(){const sp=homeCarSpot();if(!sp||!SCENES[sp.sc]||!G.stage||
   if(M0&&M0.R===R){R.s.remove(M0.c.g);R.cars.splice(R.cars.indexOf(M0.c),1);M0.ids.forEach(delInter)}
   G.myCar=G.myCar||{color:pick([0xdc2626,0x2563eb,0x111827,0xf8fafc,0x16a34a,0x9ca3af])};const c=vehicle('car',null,{body:G.myCar.color,stripe:G.myCar.color,cockpit:1});c.x=sp.x;c.z=sp.z;c.yaw=sp.yaw;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;R.s.add(c.g);R.cars.push(c);c.mine=true;
   const pl=sign(['🅿️ חניה פרטית'],1.6,.45,{bg:'#1d4ed8',size:90,w:384,h:100});pl.position.set(sp.x,1.9,sp.z-Math.sign(G.house.fz||1)*1.6);R.s.add(pl);
-  const ids=[addInter({scene:sp.sc,x:()=>c.x,z:()=>c.z,r:3.2,mode:'walk',label:'🚗 הרכב שלך · להיכנס',when:()=>player.mode==='walk'&&!SCRIDE,act:()=>{enterCar(c);toast('🚗 נסיעה טובה! R = רדיו · L = מגביל מהירות','good')}}),
+  const ids=[addInter({scene:sp.sc,x:()=>c.x,z:()=>c.z,r:3.2,mode:'walk',label:'🚗 הרכב שלך · להיכנס',when:()=>player.mode==='walk'&&!SCRIDE,act:()=>{enterCar(c);toast('🚗 נסיעה טובה! M = רדיו · H = צופר · P/R/N/D = הילוכים','good')}}),
     addInter({scene:sp.sc,x:()=>player.x,z:()=>player.z,r:1,mode:'drive',label:'לצאת מהרכב',when:()=>player.car===c&&Math.abs(c.speed)<1.5,act:()=>exitCar()})];
   if(R.isGen&&R.inters)R.inters.push(...ids);MYCAR[sp.sc]={R,c,ids,lid:G.house.lid,pl};
   G.carGift=G.carGift||{};if(!G.carGift[G.house.lid]){G.carGift[G.house.lid]=1;save();setTimeout(()=>card('🎁 מתנה מהמדינה','רכב חדש מחכה לך!',`לכל מי שגר בדירה מגיע רכב בחינם. הרכב שלך חונה בחניה הפרטית ליד הבית ב${esc(cityName(sp.sc))}.<br>ניגשים אליו ולוחצים E כדי לנהוג.`,'יאללה לנסוע'),600)}}
@@ -3706,6 +3710,96 @@ function busPanel(){let p=$('#busPanel');const J=BUSJOB,on=J&&player.car===OUT.b
   const html=`<b>🚌 קו 18 · נווה-אור</b><div class="bprow"><span>התחנה הבאה</span><b>${s?esc(s.n)+' · '+dist+' מ׳':'חזרה לדפו'}</b></div><div class="bprow"><span>↱ הפנייה</span><b>${esc(turn)}</b></div><div class="bprow"><span>👥 נוסעים</span><b>${J.pax}</b></div>
    <div class="bprow"><span>🚪 דלתות</span><b class="${J.doors?'vno':'vok'}">${J.doors?'פתוחות':'סגורות'}</b></div>${J.atStop&&!J.doors&&!J.served?'<div class="bphint">עצרת בתחנה · לפתוח דלתות (O)</div>':''}
    ${val?`<div class="bpval"><small>מתקף · עלו בתחנה:</small>${val}</div>`:''}<div class="bpbtns"><button data-bp="door">🚪 ${J.doors?'לסגור':'לפתוח'} (O)</button><button data-bp="ask">🎫 בקשה לתקף (V)</button></div>`;if(p._h!==html){p._h=html;p.innerHTML=html}}
+
+/* ====================== V8 PART V: real driving — gears P/R/N/D, parking sensors, horn; bus sounds & radio dispatch; city murmur; taxi driver job ====================== */
+/* ---------- sound helpers ---------- */
+function noiseBurst(dur,f0,f1,vol,type){if(!AC)return;try{const n=Math.floor(AC.sampleRate*dur),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type=type||'highpass';f.frequency.setValueAtTime(f0,AC.currentTime);f.frequency.linearRampToValueAtTime(f1,AC.currentTime+dur);const g=AC.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(AC.destination);s.start()}catch(e){}}
+function tone(f,dur,vol,type,at){if(!AC)return;try{const t=AC.currentTime+(at||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.setValueAtTime(vol,t+dur-.05);g.gain.linearRampToValueAtTime(0,t+dur);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+dur+.05)}catch(e){}}
+function doorSound(open){if(open){noiseBurst(.7,3000,900,.05);tone(880,.18,.04,'sine',.05);tone(660,.25,.04,'sine',.25)}else{tone(660,.15,.04,'sine');tone(880,.15,.04,'sine',.18);setTimeout(()=>noiseBurst(.55,2500,700,.045),380)}}
+function stopBell(){tone(1568,.5,.05,'triangle');tone(1975,.6,.035,'sine',.08)}
+function hornSound(bus){tone(bus?300:420,.5,.06,'square');tone(bus?370:520,.5,.05,'square')}
+function sayTTS(t,gender){try{if(voiceOn&&window.speechSynthesis)speak(t,{gender:gender||'f',pers:''})}catch(e){}}
+/* ---------- gears: P · R · N · D ---------- */
+const GEARS=['P','R','N','D'];
+function gearOf(c){if(!c)return'P';if(!c.gear)c.gear='P';return c.gear}
+function setGear(g){const c=player.car;if(!c||player.mode!=='drive')return;if(c.gear===g)return;if(Math.abs(c.speed)>1.2&&g!=='N'){toast('עצור/י לגמרי לפני החלפת הילוך','bad');beep(200,.15,'square');return}c.gear=g;c.speed=g==='P'?0:c.speed;tone(g==='R'?520:g==='P'?300:420,.06,.04,'square');gearHud();toast({P:'🅿 חניה (P)',R:'↩ רוורס (R)',N:'N · ניוטרל',D:'▶ נסיעה (D)'}[g])}
+const _inpV=input;input=function(){const r=_inpV();if(player.mode!=='drive'||!player.car)return r;const c=player.car,g=gearOf(c);
+  if(g==='P'||g==='N'){if(r.y>.3&&g==='P'&&Math.abs(c.speed)<.2&&!c._autoD){c._autoD=true;setTimeout(()=>{if(player.car===c&&c.gear==='P'){setGear('D')}c._autoD=false},150)}return Object.assign({},r,{y:g==='N'&&r.y<-.1?-.4:0})}
+  if(g==='R')return Object.assign({},r,{y:r.y>0?-r.y:(c.speed<-.05?-r.y*.9:0)});
+  if(g==='D'&&r.y<0&&c.speed<=.05)return Object.assign({},r,{y:0});return r};
+const _upV=updatePlayer;updatePlayer=function(dt){_upV(dt);const c=player.car;if(player.mode!=='drive'||!c)return;const g=gearOf(c);if(g==='P')c.speed=0;else if(g==='D')c.speed=Math.max(0,c.speed);else if(g==='R')c.speed=Math.max(-6,Math.min(0,c.speed))};
+const _ecV=enterCar;enterCar=function(c){const r=_ecV(c);c.gear='P';gearHud();setTimeout(()=>toast('🅿 הרכב בחניה · W או D להתחיל לנסוע · R רוורס · P חניה'),400);return r};
+const _xcV=exitCar;exitCar=function(){const c=player.car;if(c&&c.gear!=='P'&&Math.abs(c.speed)<2){c.gear='P'}return _xcV()};
+function gearHud(){let h=$('#gearBox');const on=player.mode==='drive'&&!!player.car;if(!h){if(!on)return;h=document.createElement('div');h.id='gearBox';h.className='hud';document.querySelector('#game').appendChild(h);h.addEventListener('click',e=>{const b=e.target.closest('[data-gear]');if(b)setGear(b.dataset.gear)})}
+  h.hidden=!on;if(!on)return;const g=gearOf(player.car);const k=GEARS.map(x=>x+(x===g?'*':'')).join();if(h._k!==k){h._k=k;h.innerHTML=GEARS.map(x=>`<button data-gear="${x}" class="${x===g?'on':''}${x==='R'?' r':''}">${x}</button>`).join('')}}
+addEventListener('keydown',e=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;if(player.mode!=='drive'||!player.car)return;const k=e.key;
+  if(k==='p'||k==='P'||k==='פ')setGear('P');else if(k==='r'||k==='R'||k==='ר')setGear('R');else if(k==='n'||k==='N'||k==='מ')setGear('N');else if((k==='D'&&e.shiftKey)||k==='ג')setGear('D');
+  else if(k==='h'||k==='H'||k==='י')honk();else if(k==='m'||k==='M'||k==='צ')radioSet((RADIO+1)%STATIONS.length)});
+/* ---------- horn ---------- */
+let HONKT=0;function honk(){if(player.mode!=='drive'||!player.car||HONKT>0)return;HONKT=.6;hornSound(player.car.kind==='bus');const c=player.car;if(cur)for(const n of cur.npcs){if(n.static||!n.h)continue;if(Math.hypot(n.x-c.x,n.z-c.z)<16){n.h.wave=.8;if(n.target==null&&!n.h.sit){n.yaw=Math.atan2(c.x-n.x,c.z-n.z)}}}}
+/* ---------- parking sensors (beep faster as you get closer) ---------- */
+let PS={t:0,d:99};
+function rearDist(c){const f={x:Math.sin(c.yaw),z:Math.cos(c.yaw)};const L=c.kind==='bus'?5.6:c.kind==='van'?2.4:2.2;const px=c.x-f.x*L,pz=c.z-f.z*L;let best=99;
+  for(const b of cur.cols){const qx=Math.max(b.x0,Math.min(px,b.x1)),qz=Math.max(b.z0,Math.min(pz,b.z1));if((qx-c.x)*f.x+(qz-c.z)*f.z>-L*.6)continue;const d=Math.hypot(px-qx,pz-qz);if(d<best)best=d}
+  for(const o of cur.cars||[]){if(o===c||!o.g)continue;const ox=o.x!=null?o.x:o.g.position.x,oz=o.z!=null?o.z:o.g.position.z;if((ox-c.x)*f.x+(oz-c.z)*f.z>-L*.6)continue;const d=Math.hypot(px-ox,pz-oz)-1.6;if(d<best)best=d}
+  for(const n of cur.npcs||[]){if(!n.h)continue;if((n.x-c.x)*f.x+(n.z-c.z)*f.z>-L*.6)continue;const d=Math.hypot(px-n.x,pz-n.z)-.3;if(d<best)best=d}return Math.max(0,best)}
+function sensorTick(dt){const c=player.car;let s=$('#psens');const on=player.mode==='drive'&&c&&(gearOf(c)==='R'||c.speed<-.2)&&cur&&!cur.indoor;
+  if(!s&&on){s=document.createElement('div');s.id='psens';s.className='hud';document.querySelector('#game').appendChild(s)}if(!on){if(s)s.hidden=true;return}
+  const d=rearDist(c);PS.d=d;s.hidden=false;const lv=d<.5?4:d<1?3:d<2?2:d<3?1:0;s.innerHTML=`<b>${d<3?d.toFixed(1)+' מ׳':'פנוי'}</b><div class="psbars">${[1,2,3,4].map(i=>`<i class="${i<=lv?'on l'+lv:''}"></i>`).join('')}</div><small>חיישני רוורס</small>`;
+  if(lv===4){PS.t-=dt;if(PS.t<=0){PS.t=.09;tone(1300,.08,.05,'square')}}else if(lv){PS.t-=dt;if(PS.t<=0){PS.t=[0,.7,.38,.18][lv];tone(1300,.07,.045,'square')}}}
+/* ---------- bus: door sounds, stop requests, dispatch radio, next-stop announcements ---------- */
+const _bdV=busDoors;busDoors=function(){const J=BUSJOB,was=J&&J.doors;_bdV();if(J&&J.doors!==was)doorSound(J.doors)};
+function busLog(t,voice){const J=BUSJOB;if(!J)return;J.log=(J.log||[]).concat(t).slice(-4);if(voice)sayTTS(voice,'f')}
+const _ubV=updateBusJob;updateBusJob=function(dt){const J=BUSJOB;const before=J&&{served:J.served,i:J.i};_ubV(dt);const K=BUSJOB;if(!K||!before)return;
+  if(!before.served&&K.served){const on=K.val?K.val.length:0;const names=(K.val||[]).slice(0,3).map(v=>v.n).join(', ');busLog(`📻 מוקד: עלו ${on} נוסעים (${names}${on>3?'...':''}), ירדו ${K.offN||0}`,`עלו ${on} נוסעים`);K.stopReq=false}
+  if(before.i!==K.i&&STOPS[K.i]){const n=STOPS[K.i].n;busLog('🔊 התחנה הבאה: '+n,'התחנה הבאה: '+n);K.reqT=rand(6,14)}
+  if(K.reqT!=null&&!K.stopReq){K.reqT-=dt;if(K.reqT<=0){K.reqT=null;if(Math.random()<.65&&K.pax>0){K.stopReq=true;stopBell();busLog('🛑 נוסע/ת לחצ/ה "עצור" לתחנה הבאה','עצירה')}}}
+  K.chat=(K.chat||rand(18,30))-dt;if(K.chat<=0){K.chat=rand(22,40);busLog(pick(['📻 מוקד: עומס בצומת אלנבי, סע/י בזהירות','📻 מוקד: קו 18, אתה בזמן. כל הכבוד','📻 מוקד: יש בדיקת כרטיסים בתחנה הבאה','📻 מוקד: נוסעת שכחה תיק בתחנה הקודמת, בדוק/י מאחור']))}};
+function busRadioUI(){let r=$('#busRadio');const J=BUSJOB,on=J&&player.car===OUT.bus;if(!r){if(!on)return;r=document.createElement('div');r.id='busRadio';r.className='hud';document.querySelector('#game').appendChild(r)}
+  if(!on){r.hidden=true;return}r.hidden=false;const h=`${J.stopReq?'<div class="stopreq">🛑 עצור · STOP</div>':''}${(J.log||[]).map(x=>`<div>${esc(x)}</div>`).join('')}`;if(r._h!==h){r._h=h;r.innerHTML=h}}
+/* passenger rides announce the next stop */
+const _cbbV=cbBoard;cbBoard=async function(){await _cbbV();if(CBR&&CBR.state==='ride'&&CBR.to){sayTTS('התחנה הבאה: '+CBR.to.n);doorSound(false)}};
+const _cwV=cbWait;cbWait=function(sc,st){_cwV(sc,st)};
+const _cbaV=cbArrive;cbArrive=async function(){stopBell();doorSound(true);return _cbaV()};
+/* ---------- city / bus murmur ---------- */
+let MUR=null;function murmurTick(dt){if(!AC)return;let n=0;if(cur&&cur.npcs)for(const p of cur.npcs){if(Math.hypot(p.x-player.x,p.z-player.z)<14)n++}if(BUSJOB&&player.car===OUT.bus)n+=Math.min(12,BUSJOB.pax);if(player.mode==='ride')n+=6;
+  const want=Math.min(.022,n*.0022);try{if(!MUR&&want>0){const len=AC.sampleRate*3,b=AC.createBuffer(1,len,AC.sampleRate),d=b.getChannelData(0);let v=0;for(let i=0;i<len;i++){v=v*.97+(Math.random()*2-1)*.03;d[i]=v*(.6+.4*Math.sin(i/AC.sampleRate*Math.PI*2*(2+Math.sin(i/9000)*1.5)))*6}
+      const s=AC.createBufferSource();s.buffer=b;s.loop=true;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=650;f.Q.value=.7;const g=AC.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(AC.destination);s.start();MUR={s,g}}
+    if(MUR)MUR.g.gain.setTargetAtTime(want,AC.currentTime,.6)}catch(e){}}
+/* ---------- taxi driver job ---------- */
+let TX=null;
+function taxiCar(){const c=vehicle('car',null,{body:0xfacc15,stripe:0x111111,cockpit:1});const sg=G_();add(sg,box(.9,.28,.35,M(0xfacc15,{emissive:0xfacc15,emissiveIntensity:.5})),0,0);const t=sign(['מונית · TAXI'],.85,.24,{bg:'#111',fg:'#facc15',size:100,w:384,h:110});t.position.z=.18;sg.add(t);const t2=t.clone();t2.rotation.y=Math.PI;t2.position.z=-.18;sg.add(t2);sg.position.set(0,1.86,-.3);c.g.add(sg);c.taxi=true;return c}
+function txPois(min,max){return((MAPD[TX.sc]&&MAPD[TX.sc].pois)||[]).filter(p=>{const d=Math.hypot(p.x-TX.car.x,p.z-TX.car.z);return d>min&&d<max&&!p.scoot&&!p.cbus})}
+function startTaxi(){const sc=cur?cur.name:'out';if(!MAPD[sc]||cur.indoor){toast('צא/י לרחוב כדי להתחיל משמרת מונית','bad');return}if(TX){toast('את/ה כבר במשמרת');return}
+  const p=freeSpot(cur,sc,player.x+3,player.z+3,2.4)||{x:player.x+3,z:player.z};const c=taxiCar();c.x=p.x;c.z=p.z;c.yaw=player.yaw;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;cur.s.add(c.g);cur.cars.push(c);
+  TX={sc,car:c,state:'free',earn:0,rides:0,t:0,ids:[]};TX.ids.push(addInter({scene:sc,x:()=>c.x,z:()=>c.z,r:3.2,mode:'walk',label:'🚕 להיכנס למונית',act:()=>enterCar(c)}),addInter({scene:sc,x:()=>player.x,z:()=>player.z,r:1,mode:'drive',label:'לצאת מהמונית',when:()=>player.car===c&&Math.abs(c.speed)<1.5&&TX&&TX.state!=='onboard',act:()=>exitCar()}));
+  setObj('🚕 המונית שלך מחכה כאן',{scene:sc,x:c.x,z:c.z});toast('🚕 משמרת מונית התחילה! היכנס/י למונית','good')}
+function txNewRide(){const ps=txPois(40,170);if(!ps.length){TX.next=5;return}const a=pick(ps);const sp=freeSpot(cur,TX.sc,a.x,a.z,1)||a;const n=npc(TX.sc,pick(PED),sp.x,sp.z,0);n.solid=false;n.h.wave=999;
+  const mk=new THREE.Sprite(new THREE.SpriteMaterial({map:exclTex(),depthTest:false,transparent:true}));mk.scale.set(.7,.7,1);mk.position.y=2.6;n.h.g.add(mk);TX.pax={n,name:pick(PNAMES),from:a};TX.state='pickup';
+  setObj('🚕 לאסוף את '+TX.pax.name+' · '+a.n,{scene:TX.sc,x:sp.x,z:sp.z});tone(988,.12,.05);tone(1318,.15,.05,'sine',.13);toast('📱 הזמנה חדשה: '+TX.pax.name+' מחכה ב'+a.n)}
+function taxiTick(dt){if(!TX)return;const c=TX.car;if(!cur||cur.name!==TX.sc){endTaxi(true);return}TX.t+=dt;
+  if(TX.state==='free'&&player.car===c){TX.next=(TX.next==null?3:TX.next)-dt;if(TX.next<=0){TX.next=null;txNewRide()}}
+  if(TX.state==='pickup'&&player.car===c){const n=TX.pax.n;if(Math.hypot(c.x-n.x,c.z-n.z)<7&&Math.abs(c.speed)<.6){removeNpc(n);const ps=txPois(80,260).filter(p=>p!==TX.pax.from);const d=ps.length?pick(ps):TX.pax.from;TX.pax.to=d;TX.state='onboard';TX.m0={x:c.x,z:c.z,t:TX.t,dist:0};
+      doorSound(true);sayTTS('שלום, ל'+d.n+' בבקשה','m');setObj('🚕 להסיע את '+TX.pax.name+' ל'+d.n,{scene:TX.sc,x:d.x,z:d.z});toast('🚕 '+TX.pax.name+' עלה/תה · ל'+d.n+' · המונה התחיל')}}
+  if(TX.state==='onboard'){const m=TX.m0;m.dist+=Math.abs(c.speed)*dt;TX.fare=Math.round(12.3+m.dist*.032+(TX.t-m.t)*.05);const d=TX.pax.to;if(Math.hypot(c.x-d.x,c.z-d.z)<9&&Math.abs(c.speed)<.5)txPay()}
+  taxiPanel()}
+async function txPay(){const P=TX.pax,f=TX.fare,fast=(TX.t-TX.m0.t)<TX.m0.dist/7+25;TX.state='paying';player.lock=true;const tip=fast?Math.round(f*.15):0;const how=Math.random()<.6?'card':'cash';
+  const ov=$('#ov');ov.hidden=false;$('#sheet').innerHTML=`<span class="eyebrow">🚕 סוף נסיעה</span><h2>₪${f}${tip?` + טיפ ₪${tip}`:''}</h2><p>${esc(P.name)} משלם/ת ${how==='card'?'באשראי':'במזומן'}</p><div class="kpay">${how==='card'?'<div class="kcard cc tap"><div class="kc-top"><b>💳 כרטיס של הנוסע/ת</b><span class="kc-nfc">)))</span></div><div class="kc-num">•••• •••• •••• '+(1000+Math.floor(Math.random()*8999))+'</div><div class="kc-bot"><span></span><b>VISA</b></div></div>':'<div class="kcard cash"><b style="font-size:22px">💵 מזומן</b></div>'}</div><div class="pos"><div class="pos-scr ok" id="txs">מעבד...</div></div><button class="btn primary" id="txOk" disabled>המשך</button>`;
+  if(how==='card'){tone(1320,.09,.05,'square');tone(1320,.09,.05,'square',.17)}else tone(700,.06,.04);await sleep(800);$('#txs').textContent='✓ שולם';tone(1760,.12,.05);earn(f+tip,'מונית · נסיעה עם '+P.name);TX.earn+=f+tip;TX.rides++;try{funEv('taxi');addXP(15)}catch(e){}
+  $('#txOk').disabled=false;await new Promise(r=>$('#txOk').addEventListener('click',r,{once:true}));ov.hidden=true;player.lock=false;doorSound(false);sayTTS(pick(['תודה, נסיעה נעימה!','תודה רבה, יום טוב!']),'m');TX.state='free';TX.next=4;setObj('🚕 מחכה להזמנה הבאה...',null)}
+function endTaxi(silent){if(!TX)return;const T=TX;TX=null;if(player.car===T.car){player.car.speed=0;player.mode='walk';player.car=null;player.h.g.visible=true;$('#speedo').hidden=true;$('#camBtn').hidden=true}
+  if(T.pax&&T.pax.n&&T.state==='pickup'){try{removeNpc(T.pax.n)}catch(e){}}T.ids.forEach(delInter);if(T.car.g.parent){T.car.g.parent.remove(T.car.g);const R=SCENES[T.sc];if(R)R.cars.splice(R.cars.indexOf(T.car),1)}const p=$('#taxiPanel');if(p)p.hidden=true;setObj('',null);
+  if(!silent)card('🚕 סוף משמרת מונית',`${T.rides} נסיעות`,`הרווחת <b>${fmt(T.earn)}</b> היום כנהג/ת מונית.`,'יופי')}
+function taxiPanel(){let p=$('#taxiPanel');if(!p){p=document.createElement('div');p.id='taxiPanel';p.className='hud';document.querySelector('#game').appendChild(p)}p.hidden=!TX;if(!TX)return;
+  const st={free:'ממתין/ה להזמנה',pickup:'בדרך לאסוף את '+(TX.pax?TX.pax.name:''),onboard:'נוסע/ת: '+(TX.pax?TX.pax.name:'')+' → '+(TX.pax&&TX.pax.to?TX.pax.to.n:''),paying:'תשלום'}[TX.state];
+  const h=`<b>🚕 מונית · ${esc(cityName(TX.sc))}</b><div class="taximeter">₪${TX.state==='onboard'?TX.fare:'--'}</div><div class="bprow"><span>מצב</span><b>${esc(st)}</b></div><div class="bprow"><span>נסיעות היום</span><b>${TX.rides} · ${fmt(TX.earn)}</b></div>`;if(p._h!==h){p._h=h;p.innerHTML=h}}
+APPS.push({id:'taxi',n:'מונית',c:'#facc15',i:'🚕'});
+const _appV=V8.app;V8.app=function(id,body){if(id!=='taxi'){_appV(id,body);return}const B=body(TX?`<div class="prow"><span>🚕 במשמרת · ${esc(cityName(TX.sc))}</span><b>${TX.rides} נסיעות · ${fmt(TX.earn)}</b></div><button class="btn" id="txEnd" style="background:#dc2626">לסיים משמרת</button>`
+  :`<div style="text-align:center;padding:8px"><div style="font-size:44px">🚕</div><b>עבודה כנהג/ת מונית</b><p style="color:var(--muted);font-size:13px">מקבלים מונית צהובה, אוספים נוסעים מההזמנות באפליקציה ומסיעים אותם. מונה, טיפים ותשלום באשראי או במזומן.</p><button class="btn primary" id="txGo">להתחיל משמרת כאן</button></div>`);
+  const g=B.querySelector('#txGo');if(g)g.addEventListener('click',()=>{$('#phone').hidden=true;startTaxi()});const e=B.querySelector('#txEnd');if(e)e.addEventListener('click',()=>{$('#phone').hidden=true;endTaxi()})};
+/* ---------- buttons while driving: horn ---------- */
+function driveBtns(){let b=$('#hornBtn');const on=player.mode==='drive'&&!!player.car;if(!b&&on){b=document.createElement('button');b.id='hornBtn';b.className='hud hudbtn';b.textContent='📯 צופר (H)';document.querySelector('#game').appendChild(b);b.addEventListener('click',honk)}if(b)b.hidden=!on}
+const _tickV=V8.tick;V8.tick=function(dt){_tickV(dt);HONKT=Math.max(0,HONKT-dt);try{gearHud();sensorTick(dt);busRadioUI();murmurTick(dt);taxiTick(dt);driveBtns()}catch(e){console.warn(e)}};
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
