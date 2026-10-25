@@ -278,6 +278,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .cine-scr b{font-size:24px}.cine-seats{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}.cine-seats i{height:12px;background:#7f1d1d;border-radius:4px 4px 2px 2px}@keyframes cineBg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pchip{font-size:12px;padding:3px 8px;border-radius:12px;background:#1f2937;color:var(--muted)}.pchip.on{background:#14532d;color:#bbf7d0}
 #scootBtn.at{background:#0f766e;animation:pop .4s ease}#scootBtn{bottom:228px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;border:0;border-radius:20px;padding:8px 16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);z-index:7}
+#fuelG{display:flex;align-items:center;gap:6px;font-size:12px;width:100%}#fuelG i{flex:1;height:6px;background:#1f2937;border-radius:3px;overflow:hidden}#fuelG b{display:block;height:100%}.newsi{background:rgba(255,255,255,.06);border-inline-start:3px solid #f59e0b;border-radius:8px;padding:8px;font-weight:700;font-size:14px}
 #psens{flex-direction:row!important;gap:10px!important;align-items:center}.pscar{display:flex;flex-direction:column;align-items:center;gap:2px}.psrow{display:flex;gap:3px}.psrow i{width:20px;height:7px;border-radius:4px;background:#334155}.psrow i.l1{background:#22c55e}.psrow i.l2{background:#facc15}.psrow i.l3{background:#f97316}.psrow i.l4{background:#dc2626;box-shadow:0 0 8px #dc2626}.psbody{font-size:24px;line-height:1}
 .psinfo{display:flex;flex-direction:column;align-items:center}.psinfo b{font:700 18px var(--f-mono)}.psstop{background:#dc2626;color:#fff;font-weight:900;border-radius:6px;padding:1px 8px;animation:pop .4s ease infinite alternate}
 #apBtn{bottom:356px;inset-inline-end:16px;z-index:7}#apBtn.on{background:#2563eb;color:#fff}#parkBtn{bottom:190px;left:50%;transform:translateX(-50%);background:#2563eb;color:#fff;border:0;border-radius:22px;padding:10px 20px;font-weight:900;font-size:16px;cursor:pointer;z-index:8;animation:pop .6s ease infinite alternate}
@@ -962,7 +963,7 @@ const waiters=[];function waitFor(fn){return new Promise(res=>waiters.push({fn,r
 const G={name:'אלי',day:0,money:12,role:'דר רחוב',wage:0,goodDays:0,stage:'title',clockMin:23*60+40,seenLobby:false,tier:0,
   hasPhone:false,phonePro:false,job:'dispatch',jobs:{dispatch:{wage:48,good:0,raiseGood:0,lastRaise:0,lvl:0},service:{wage:45,good:0,raiseGood:0,lastRaise:0,lvl:0}},
   energy:80,fridge:2,home:{},fines:[],ravkav:{has:false,bal:0},bank:{open:false,card:false,debt:0,limit:5000,num:''},tx:[],look:{shirt:0x5b8fc7,pants:0x2c3540},lastAsk:-1,nextJob:null,workDone:false};
-const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor','friends','xp','stats','quest','ach','coins','race','weather','wday','myCar','carGift'];
+const SAVE_KEYS=['day','money','role','wage','goodDays','tier','seenLobby','hasPhone','phonePro','job','jobs','energy','fridge','bank','tx','look','lastAsk','nextJob','pcTut','home','ravkav','fines','gen','shiftH','house','fam','elect','pass','fun','kor','friends','xp','stats','quest','ach','coins','race','weather','wday','myCar','carGift','fuel','news'];
 function gameClock(){const m=Math.floor(G.clockMin)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
 function hud(){$('#dayK').textContent=G.day?('יום '+G.day):'לילה';$('#dayV').textContent=gameClock();$('#money').textContent=fmt(G.money)+(G.bank.card&&G.bank.debt?` · אשראי ${fmt(G.bank.debt)}`:'');$('#role').textContent=G.role;
   $('#energyV').textContent=Math.round(G.energy)+'%';$('#energyV').style.color=G.energy<20?'var(--red)':'';$('#phoneBtn').hidden=!G.hasPhone}
@@ -1434,7 +1435,7 @@ async function talkSeller(id){player.lock=true;const nm=STAFF[id];
   if(MENUSHOP.includes(id)){await menuBuy(id,nm);return}
   if(!CART.length){const k=await say(nm,'שלום! קח מה שאתה רוצה מהמדפים ותביא לי לקופה.',['יש לך המלצה?','רק מסתכל, תודה']);
     if(k===0){const it=pick(ITEMS[id]);await say(nm,`האמת? ${it.n}. ₪${it.p} – הכי נמכר אצלנו השבוע.`)}player.lock=false;return}
-  const sum=CART.reduce((a,b)=>a+b.p,0);
+  const sum=Math.round(CART.reduce((a,b)=>a+b.p,0)*PF());
   const k=await say(nm,`${CART.length} מוצרים: ${CART.map(i=>i.n).join(', ')}. סה״כ ₪${sum}. איך תשלם?`,['מזומן',G.bank.card?'כרטיס אשראי':'(אין לי כרטיס אשראי)','רגע, אני מחזיר הכל למדף']);
   if(k===2){CART=[];await say(nm,'אין בעיה.');player.lock=false;return}
   const how=k===0?'cash':'card';if(how==='card'&&!G.bank.card){await say(nm,'אין לך כרטיס? אפשר להוציא בבנק העיר.');player.lock=false;return}
@@ -1442,7 +1443,7 @@ async function talkSeller(id){player.lock=true;const nm=STAFF[id];
   CART.forEach(applyItem);CART=[];giveBag();save();beep(880,.06);
   await say(nm,pick(['תודה רבה! הנה השקית שלך. יום טוב!','בבקשה, הכל בשקית. תהנה!','תתחדש! להתראות.']));player.lock=false}
 async function menuBuy(id,nm){player.lock=true;const list=ITEMS[id];const k=await say(nm,'מה להביא לך?',[...list.map(i=>`${i.n} · ₪${i.p}`),'שום דבר, תודה']);if(k>=list.length){player.lock=false;return}
-  const it=list[k];const how=G.money>=it.p?'cash':G.bank.card&&canCard(it.p)?'card':null;if(!await payPOS(it.p,it.n,how||'cash')){await say(nm,'לא נורא, אולי בפעם אחרת.');player.lock=false;return}
+  const it=list[k];const how=G.money>=it.p?'cash':G.bank.card&&canCard(it.p)?'card':null;if(!await payPOS(Math.round(it.p*PF()),it.n,how||'cash')){await say(nm,'לא נורא, אולי בפעם אחרת.');player.lock=false;return}
   applyItem(it);hud();save();toast(`${it.n} · +${it.en||0} אנרגיה`,'good');await say(nm,pick(['בתיאבון!','בבקשה, תהנה.']));player.lock=false}
 async function leaveShop(id){if(CART.length&&id!=='bank'){player.lock=true;await say(STAFF[id],'רגע! לא שילמת על זה. תחזיר למדף או תבוא לקופה.');CART=[];player.lock=false;return}
   const e=SHOPEXIT(id);player.lock=true;await fade(true);goScene(e.sc,e.x,e.z,e.yaw);await fade(false);player.lock=false}
@@ -2042,7 +2043,7 @@ function buildGenCity(def){const L=cityLayout(def),th=def.th;const R=mkScene(def
     AI({x:h.door.x,z:h.door.z+h.fz*1.4,r:2.2,label:'להיכנס הביתה',when:()=>G.house&&G.house.lid===h.id,act:()=>V8.goHomeIn&&V8.goHomeIn()})}
   // fillers in blocks
   const fill=(x0,x1,z0,z1)=>{for(let x=x0;x<x1-6;x+=15)for(let z=z0;z<z1-6;z+=15){const w=Math.min(13,x1-x),d=Math.min(13,z1-z);if(w<7||d<7)continue;addB(x+w/2,z+d/2,w,d,def.th.h[0]+rnd()*(def.th.h[1]-def.th.h[0]),pick([def.th.fac,0xffffff,0xe8dccc,0xdfe7ee,0xf1e4d2]))}};
-  fill(-50,50,-110,-86);fill(-110,-86,-50,50);fill(86,110,-50,50);
+  
   fill(-110,-72,-70,-56+0);fill(72,110,-70,-56);
   // skyline beyond the bounds
   for(let x=-320;x<=320;x+=17)for(let z=-320;z<=320;z+=17){const r=Math.max(Math.abs(x),Math.abs(z));if(r<140)continue;const h=def.th.h[0]+rnd()*(def.th.h[1]*1.3-def.th.h[0]);tiers.find(t=>h<=t.max).list.push({x,z,w:12+rnd()*4,d:12+rnd()*4,h,col:pick([def.th.fac,0xffffff,0xe5e7eb])})}
@@ -3617,7 +3618,7 @@ function buildNeveOrDowntown(){const R=OUT;if(!R||NO.ready)return;NO.ready=true;
     const st=sign([street],4.6,.7,{bg:'#f8fafc',fg:'#1e3a8a',size:90,w:512,h:72});st.position.set(x+3.4,2.6,36.8);st.rotation.y=Math.PI;S.add(st);
     AI({x,z:35.4,r:2.2,label:'להיכנס הביתה',when:()=>G.house&&G.house.lid===id,act:()=>V8.goHomeIn()})});
   // ---- skyline towers (downtown)
-  for(let i=0;i<9;i++){const x=-285+i*17.5,z=78+(i%2)*14;noBld(R,x,z,13,12,26+((i*37)%40),pick([0xdfe5ea,0xffffff,0xe5e7eb]),null)}
+  for(let i=0;i<9;i++){const x=-285+i*17.5,z=121+(i%2)*10;noBld(R,x,z,13,12,26+((i*37)%40),pick([0xdfe5ea,0xffffff,0xe5e7eb]),null)}
   // ---- bus line 9 + 10 serving downtown
   try{buildCityBus('out',{lines:[{no:'9',c:'#0ea5e9',dir:1,closed:false,P:laneLine(-286,-100,23.4,6),n:'אלנבי · העיר הישנה ↔ מרכז נווה-אור'},{no:'10',c:'#f97316',dir:1,closed:false,P:(()=>{const P=[];for(let z=-104;z<=58;z+=6)P.push({x:-206.6,z});return P})(),n:'שדרות נווה-אור · הקניון ↔ הבתים'}],
     stops:[['אלנבי · העיר הישנה',-100,28.6,Math.PI],['כיכר נווה-אור',-168,28.6,Math.PI],['השדרה',-196,28.6,Math.PI],['העירייה והתיווך',-254,28.6,Math.PI],['🏬 הקניון',-201.4,-80,Math.PI/2],['🌳 הפארק',-201.4,-40,Math.PI/2],['🏠 הבתים החדשים',-201.4,48,Math.PI/2]]});
@@ -3858,6 +3859,121 @@ const _tickW=V8.tick;V8.tick=function(dt){_tickW(dt);try{parkTick(dt);apTick(dt)
 const _sbW=sitBus;sitBus=async function(){await _sbW.apply(this,arguments);if(RIDE&&RIDE.to)announce('התחנה הבאה: '+RIDE.to.n,'pa')};
 const _erW=endRide;endRide=async function(){if(RIDE&&RIDE.to)announce('תחנת '+RIDE.to.n,'pa');return _erW.apply(this,arguments)};
 
+/* ====================== V8 PART X: realistic cars, fuel + gas stations, Assuta hospital, police, BIG, markets, taxi stands, gas & police jobs, daily news with price changes, protests and reforms ====================== */
+/* ---------- cars: plates, mirrors, grille, seams, tinted glass you can see through, interior ---------- */
+function plateTex(){const n=`${10+Math.floor(Math.random()*89)}-${100+Math.floor(Math.random()*899)}-${10+Math.floor(Math.random()*89)}`;return ctex(256,64,(g,w,h)=>{g.fillStyle='#facc15';g.fillRect(0,0,w,h);g.fillStyle='#1d4ed8';g.fillRect(0,0,34,h);g.fillStyle='#fff';g.font='bold 18px sans-serif';g.fillText('IL',6,40);g.fillStyle='#111';g.font='bold 40px monospace';g.textAlign='center';g.fillText(n,145,46);g.strokeStyle='#111';g.lineWidth=3;g.strokeRect(1.5,1.5,w-3,h-3)})}
+GLASSM.transparent=true;GLASSM.opacity=.6;GLASSM.color.setHex(0x1b2a38);
+const SEATM=M(0x1f2937,{roughness:.9}),DASHM=M(0x111827,{roughness:.7}),CHROME=M(0xd1d5db,{metalness:.9,roughness:.2});
+const _vehX=vehicle;vehicle=function(kind,label,opt){const v=_vehX(kind,label,opt);if(kind!=='car')return v;try{const g=v.g;
+  for(const z of[2.08,-2.08]){const p=new THREE.Mesh(new THREE.PlaneGeometry(.52,.13),new THREE.MeshBasicMaterial({map:plateTex()}));p.position.set(0,.5,z+(z>0?.045:-.045));if(z<0)p.rotation.y=Math.PI;g.add(p)}
+  add(g,box(1.1,.22,.05,M(0x111111,{roughness:.4})),0,.66,2.06);for(let i=0;i<4;i++)add(g,box(1.05,.02,.06,CHROME),0,.58+i*.055,2.07);
+  for(const s of[-1,1]){const m=G_();add(m,box(.06,.05,.14,DASHM),0,0,0);add(m,box(.18,.12,.06,M(opt&&opt.body!=null?opt.body:0xf2f4f5,{roughness:.35,metalness:.35})),s*.1,0,0);add(m,box(.14,.09,.01,CHROME),s*.1,0,-.035);m.position.set(s*.86,1.08,.95);g.add(m);
+    for(const z of[.85,-.3])add(g,box(.01,.5,.02,M(0x0b0b0b)),s*.835,.82,z);add(g,box(.02,.04,.18,CHROME),s*.84,.92,.55);add(g,box(.02,.04,.18,CHROME),s*.84,.92,-.65)}
+  for(const [x,z] of[[.4,.05],[-.4,.05]]){const st=G_();add(st,box(.46,.1,.48,SEATM),0,.62,0);add(st,box(.46,.55,.1,SEATM),0,.95,-.24);add(st,box(.26,.16,.08,SEATM),0,1.32,-.26);st.position.set(x,0,z);g.add(st)}
+  add(g,box(1.3,.3,.42,SEATM),0,.68,-1.05);add(g,box(1.3,.5,.1,SEATM),0,.98,-1.27);add(g,box(1.5,.2,.4,DASHM),0,.96,.95);add(g,box(.2,.14,.02,M(0x0ea5e9,{emissive:0x0ea5e9,emissiveIntensity:.6})),0,1.06,.78);
+  const sw=new THREE.Mesh(new THREE.TorusGeometry(.17,.025,8,20),DASHM);sw.position.set(.4,1.05,.66);sw.rotation.x=-.5;g.add(sw);
+  for(const k of g.children)if(k.geometry&&k.geometry.parameters&&k.geometry.parameters.radiusTop===.42){const t=new THREE.Mesh(new THREE.TorusGeometry(.36,.07,8,20),M(0x0a0a0a,{roughness:.95}));t.rotation.y=Math.PI/2;t.position.copy(k.position);g.add(t)}}catch(e){console.warn(e)}return v};
+/* cockpit: add a glowing center screen with time + speed */
+const _bcX=buildCockpit;buildCockpit=function(v){_bcX(v);if(v.kind!=='car'||!v.cock||!v.eye)return;const e=v.eye;const sc=document.createElement('canvas');sc.width=256;sc.height=160;const t=new THREE.CanvasTexture(sc);
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(.26,.16),new THREE.MeshBasicMaterial({map:t}));scr.position.set(e.x-.38,e.y-.38,e.z+.7);scr.rotation.set(-.3,Math.PI,0);v.cock.add(scr);v.cscreen={c:sc,g:sc.getContext('2d'),t,last:0};
+  for(const sx of[-1,1]){const st=G_();add(st,box(.5,.1,.5,SEATM),0,0,0);add(st,box(.5,.6,.1,SEATM),0,.32,-.24);st.position.set(e.x+(sx<0?-.8:0),e.y-.75,e.z-.3);v.cock.add(st)}};
+function screenTick(){const c=player.car;if(!c||!c.cscreen||player.mode!=='drive')return;const S=c.cscreen;S.last-=1;if(S.last>0)return;S.last=20;const g=S.g;g.fillStyle='#0b1220';g.fillRect(0,0,256,160);g.fillStyle='#38bdf8';g.font='bold 34px monospace';g.textAlign='center';g.fillText(gameClock(),128,48);
+  g.fillStyle='#fff';g.font='bold 30px sans-serif';g.fillText(Math.round(Math.abs(c.speed)*3.6)+' קמ״ש',128,92);g.fillStyle=G.fuel<15?'#f87171':'#4ade80';g.font='22px sans-serif';g.fillText('⛽ '+Math.round(G.fuel==null?100:G.fuel)+'%   הילוך '+(c.gear||'P'),128,136);S.t.needsUpdate=true}
+/* ---------- fuel ---------- */
+function fuelCar(c){return c&&(c.mine||c===OUT.car)}
+function fuelPrice(){return +(7.2*PF()).toFixed(2)}
+const _inX=input;input=function(){const r=_inX();const c=player.car;if(player.mode==='drive'&&fuelCar(c)&&(G.fuel!=null&&G.fuel<=0)&&r.y!==0){if(!fuelCar._w){fuelCar._w=1;toast('⛽ נגמר הדלק! צריך לתדלק בתחנת דלק','bad');setTimeout(()=>fuelCar._w=0,4000)}return Object.assign({},r,{y:0})}return r};
+function fuelTick(dt){const c=player.car;if(player.mode!=='drive'||!fuelCar(c))return;if(G.fuel==null)G.fuel=100;G.fuel=Math.max(0,G.fuel-Math.abs(c.speed)*dt/320);if(G.fuel<12&&!fuelTick._w){fuelTick._w=1;toast('⛽ הדלק עומד להיגמר · סע/י לתחנת דלק','bad');setTimeout(()=>fuelTick._w=0,30000)}
+  const s=$('#speedo');if(s){let f=$('#fuelG');if(!f){f=document.createElement('div');f.id='fuelG';s.appendChild(f)}f.innerHTML=`⛽ <i><b style="width:${G.fuel}%;background:${G.fuel<15?'#ef4444':'#22c55e'}"></b></i>`}}
+async function refuel(){const c=player.car;if(!fuelCar(c)){toast('רכב העבודה מתודלק על ידי החברה');return}if(Math.abs(c.speed)>.5){toast('עצור/י ליד המשאבה','bad');return}player.lock=true;const pr=fuelPrice(),need=Math.ceil((100-(G.fuel||0))/2);
+  const k=await say('⛽ משאבה','בחר/י דלק וכמות',[`95 מלא · ${need} ל׳ · ₪${Math.round(need*pr)}`,`95 ב-₪50`,`95 ב-₪100`,'ביטול']);if(k===3){player.lock=false;return}
+  const amt=k===0?Math.round(need*pr):k===1?50:100,lit=Math.min(need,amt/pr);if(!await payPOS(amt,'דלק 95 · '+lit.toFixed(1)+' ל׳','card')){player.lock=false;return}
+  for(let i=0;i<6;i++)setTimeout(()=>tone(220+i*20,.15,.02,'sawtooth'),i*180);await sleep(1200);G.fuel=Math.min(100,(G.fuel||0)+lit*2);save();toast(`⛽ תודלקו ${lit.toFixed(1)} ליטר · ${Math.round(G.fuel)}%`,'good');player.lock=false}
+/* ---------- building helpers ---------- */
+function cBld(R,x,z,w,d,h,col,name,bg,door,face,sc){const b=noBld(R,x,z,w,d,h,col,name,bg,door,face);if(R.isGen&&R.inters){}return b}
+function gasStation(R,sc,x,z,face){const S=R.s;const g=G_();add(g,box(18,.4,11,M(0xf8fafc)),0,5.2);add(g,box(18.2,.6,11.2,M(0xdc2626,{emissive:0x7f1d1d,emissiveIntensity:.3})),0,4.8);for(const sx of[-7,7])for(const sz of[-4,4])add(g,box(.4,4.8,.4,M(0xe5e7eb)),sx,2.4,sz);
+  const pumps=[];for(const px of[-4.5,4.5]){const p=G_();add(p,box(.8,1.7,.5,M(0x16a34a)),0,.85);add(p,box(.6,.35,.02,M(0x0b1220,{emissive:0x22c55e,emissiveIntensity:.5})),0,1.35,.26);add(p,box(.06,.6,.06,0x111111),.35,1.1,.3);p.position.set(px,0,0);g.add(p);pumps.push(px)}
+  add(g,box(9,.5,.8,M(0x9ca3af)),0,.25,0);const pr=sign(['⛽ דלק 95',`₪${fuelPrice()} לליטר`],2.4,1.4,{bg:'#dc2626',size:84,w:384,h:220});pr.position.set(-9,4,6);pr.rotation.y=Math.PI;g.add(pr);
+  const shop=G_();add(shop,box(8,3.4,6,M(0xf1f5f9)),0,1.7);add(shop,box(8.2,.5,6.2,0xdc2626),0,3.6);const ss=sign(['מכולת תחנת הדלק'],5,.6,{bg:'#dc2626',size:90,w:512,h:80});ss.position.set(0,2.9,3.05);shop.add(ss);shop.position.set(0,0,-9);g.add(shop);
+  g.position.set(x,0,z);g.rotation.y=Math.atan2(face[0],face[1]);castAll(g);S.add(g);const ry=g.rotation.y,cs=Math.cos(ry),sn=Math.sin(ry);const W=(lx,lz)=>({x:x+lx*cs+lz*sn,z:z-lx*sn+lz*cs});
+  const sp=W(0,-9);R.cols.push({x0:sp.x-4.5,x1:sp.x+4.5,z0:sp.z-4.5,z1:sp.z+4.5});const P=pumps.map(px=>W(px,1.8));
+  const ids=[];P.forEach(p=>ids.push(addInter({scene:sc,x:p.x,z:p.z,r:4.5,mode:'drive',label:'⛽ לתדלק את הרכב',when:()=>fuelCar(player.car),act:()=>refuel()})));
+  const sd=W(0,-5.6);ids.push(addInter({scene:sc,x:sd.x,z:sd.z,r:2.2,mode:'walk',label:'🛒 מכולת התחנה · שתייה וחטיפים',act:async()=>{player.lock=true;const k=await say('קופאי/ת','מה תרצה?',['קפה ומאפה · ₪16','שתייה קרה · ₪8','מגב לשמשה · ₪25','כלום']);player.lock=false;if(k===3)return;const a=[16,8,25][k];if(await payPOS(Math.round(a*PF()),'מכולת תחנת דלק','cash')){G.energy=Math.min(100,G.energy+[14,6,0][k]);hud()}}}));
+  const jd=W(-3,4.5);ids.push(addInter({scene:sc,x:jd.x,z:jd.z,r:2.2,mode:'walk',label:()=>GJ?'⛽ משמרת תדלוק פעילה':'⛽ עבודה כתדלקן/ית · להתחיל משמרת',when:()=>!GJ&&!TX&&!PJ,act:()=>startGasJob(sc,P)}));
+  if(R.isGen&&R.inters)R.inters.push(...ids);if(MAPD[sc])MAPD[sc].pois.push({n:'תחנת דלק',x,z,c:'#dc2626',ic:'⛽',big:1});return{P}}
+function addCivic(R,sc,L){const ids=[];const AIx=o=>{const id=addInter(Object.assign({scene:sc,mode:'walk'},o));ids.push(id)};
+  noBld(R,L.hosp.x,L.hosp.z,L.hosp.w,L.hosp.d,24,0xf1f5f9,'אסותא · בית חולים · מרכז רפואי','#0e7490',L.hosp.door,L.hosp.face);
+  AIx({x:L.hosp.i.x,z:L.hosp.i.z,r:2.6,label:'🏥 אסותא · בית חולים',act:()=>hospitalVisit(sc)});
+  noBld(R,L.pol.x,L.pol.z,L.pol.w,L.pol.d,12,0xdbeafe,'משטרת ישראל · תחנת '+cityName(sc),'#1e3a8a',L.pol.door,L.pol.face);
+  const lb=glow(0x3b82f6,2,.8);lb.position.set(L.pol.door.x,4.6,L.pol.door.z);R.s.add(lb);(R.polLights=R.polLights||[]).push(lb);
+  AIx({x:L.pol.i.x,z:L.pol.i.z,r:2.6,label:()=>PJ?'👮 משמרת סיור פעילה':'👮 תחנת משטרה',act:()=>policeDesk(sc)});
+  noBld(R,L.big.x,L.big.z,L.big.w,L.big.d,10,0xfef3c7,'BIG · מרכז קניות · מגה סופר','#ea580c',L.big.door,L.big.face);
+  const bigShops=[['super','מגה סופר BIG','#16a34a'],['fashion','אופנה BIG','#7c3aed'],['elec','חשמל BIG','#475569'],['furn','רהיטים BIG','#92400e']].map(([b,n,bg],i)=>{const id='big_'+sc+'_'+i;GENSHOP[id]={n,sub:BASESUB[b]||'',bg,base:b,exit:{sc,x:L.big.i.x,z:L.big.i.z,yaw:Math.atan2(L.big.face[0],L.big.face[1])}};
+    ITEMS[id]=b==='super'?[...(ITEMS.super||[]),...(ITEMS.super2||[]),...(ITEMS.bakery||[])]:ITEMS[b];STAFF[id]=SNAMES[seedOf(id)%SNAMES.length];return{id,n}});
+  AIx({x:L.big.i.x,z:L.big.i.z,r:2.8,label:'🛒 BIG · מרכז קניות',act:async()=>{player.lock=true;const k=await say('BIG '+cityName(sc),'לאיזו חנות נכנסים?',[...bigShops.map(s=>s.n),'ביטול']);player.lock=false;if(k<bigShops.length)enterShop(bigShops[k].id)}});
+  const mk=L.mkt;for(let i=0;i<8;i++){const x=mk.x0+i*(mk.x1-mk.x0)/7,z=mk.z+(i%2?3.2:-3.2);const st=G_();const ac=pick([0xdc2626,0x16a34a,0xf59e0b,0x2563eb,0x7c3aed]);add(st,box(3,.9,1.4,0x8a5a3a),0,.45);add(st,box(3.4,.08,2,ac),0,2.4);for(const s of[-1,1])add(st,box(.08,2.4,.08,0x4a3a2a),s*1.6,1.2,i%2?-.9:.9);
+    for(let k=0;k<9;k++)add(st,_sph(.13,pick([0xef4444,0xf59e0b,0x84cc16,0xfacc15,0x7c2d12,0xe11d48]),8,6),rand(-1.2,1.2),.98,rand(-.5,.5));st.position.set(x,0,z);if(i%2)st.rotation.y=Math.PI;castAll(st);R.s.add(st);R.cols.push({x0:x-1.6,x1:x+1.6,z0:z-.8,z1:z+.8});const v=npc(sc,pick(PED),x,z+(i%2?1.3:-1.3),i%2?0:Math.PI);v.solid=false;v.h.talk=1e9}
+  const ms=sign(['🧺 שוק '+cityName(sc)],5,1,{bg:'#b45309',size:90,w:512,h:110});ms.position.set(mk.x0-3,2.8,mk.z);ms.rotation.y=Math.PI/2;R.s.add(ms);
+  AIx({x:(mk.x0+mk.x1)/2,z:mk.z,r:4,label:'🧺 שוק · לקנות',act:async()=>{player.lock=true;const k=await say('מוכר בשוק','יאללה יאללה! הכל טרי!',['שקית פירות · ₪12','ירקות לשבוע · ₪30','בורקס חם · ₪10','תבלינים וחלבה · ₪18','כלום']);player.lock=false;if(k===4)return;const a=[12,30,10,18][k];if(await payPOS(Math.round(a*PF()),'שוק '+cityName(sc),'cash')){G.energy=Math.min(100,G.energy+[10,4,12,2][k]);if(k===1)G.fridge=(G.fridge||0)+3;hud();toast('🧺 קנית בשוק','good')}}});
+  gasStation(R,sc,L.gas.x,L.gas.z,L.gas.face);
+  const ts=G_();add(ts,_cyl(.06,.06,2.6,0x374151,8),0,1.3);const tsg=sign(['🚕 תחנת מוניות','משמרת נהג/ת מונית'],1.5,.8,{bg:'#facc15',fg:'#111',sub:'#111',size:84,w:384,h:200});tsg.position.y=2.5;ts.add(tsg);ts.position.set(L.taxi.x,0,L.taxi.z);R.s.add(ts);
+  for(let i=0;i<2;i++){const c=vehicle('car',null,{body:0xfacc15,stripe:0x111111});c.g.position.set(L.taxi.x+3+i*5,0,L.taxi.z+(L.taxi.dz||0));c.g.rotation.y=Math.PI/2;R.s.add(c.g)}
+  AIx({x:L.taxi.x,z:L.taxi.z,r:2.6,label:'🚕 תחנת מוניות · להתחיל משמרת נהג/ת מונית',when:()=>!TX,act:()=>startTaxi()});
+  if(R.isGen&&R.inters)R.inters.push(...ids);const md=MAPD[sc];if(md)[['אסותא · בית חולים','#0e7490','🏥',L.hosp.i],['משטרה','#1e3a8a','👮',L.pol.i],['BIG מרכז קניות','#ea580c','🛒',L.big.i],['שוק','#b45309','🧺',{x:(mk.x0+mk.x1)/2,z:mk.z}],['תחנת מוניות','#ca8a04','🚕',L.taxi]].forEach(([n,c,ic,p])=>md.pois.push({n,x:p.x,z:p.z,c,ic,big:1}))}
+const GEN_CIVIC={hosp:{x:-98,z:-26,w:22,d:42,door:{x:-109.1,z:-26},face:[-1,0],i:{x:-111,z:-26}},big:{x:-98,z:24,w:22,d:40,door:{x:-109.1,z:24},face:[-1,0],i:{x:-111,z:24}},
+  pol:{x:98,z:-28,w:22,d:30,door:{x:109.1,z:-28},face:[1,0],i:{x:111,z:-28}},gas:{x:100,z:22,face:[1,0]},mkt:{x0:-40,x1:40,z:-98},taxi:{x:-30,z:128.6,dz:1.2}};
+const _bgcX=buildGenCity;buildGenCity=function(def){const R=_bgcX(def);try{addCivic(R,def.id,GEN_CIVIC)}catch(e){console.warn('civic',e)}return R};
+const NO_CIVIC={hosp:{x:-268,z:84,w:30,d:22,door:{x:-268,z:72.9},face:[0,-1],i:{x:-268,z:71.2}},pol:{x:-236,z:84,w:20,d:22,door:{x:-236,z:72.9},face:[0,-1],i:{x:-236,z:71.2}},
+  big:{x:-204,z:86,w:30,d:26,door:{x:-204,z:72.9},face:[0,-1],i:{x:-204,z:71.2}},gas:{x:-166,z:80,face:[0,-1]},mkt:{x0:-284,x1:-140,z:104},taxi:{x:56,z:104,dz:-4}};
+const _initX=V8.init;V8.init=function(){_initX();try{const S=OUT.s;noPlane(S,160,12,-212,66,.02,0x9a9da2,asphaltTex,12,1);noPlane(S,160,18,-212,66,.012,0xb8b2a6,tileTex,26,3);MAPD.out.roads.push({x1:-290,z1:66,x2:-132,z2:66,w:12,n:'רחוב הבריאות'});addCivic(OUT,'out',NO_CIVIC)}catch(e){console.warn('no civic',e)}};
+/* ---------- hospital, police desk ---------- */
+async function hospitalVisit(sc){player.lock=true;const k=await say('קבלה · אסותא','שלום, במה נוכל לעזור?',['בדיקה אצל רופא/ה (בחינם בקופה)','חדר מיון · אני לא מרגיש/ה טוב · ₪50','לבקר חולה ולהביא פרחים','עבודה בבית החולים','להתראות']);
+  if(k===0){player.lock=false;return V8.hospital(sc)}if(k===1){if(await payPOS(50,'השתתפות עצמית · מיון','card')){await fade(true);G.clockMin+=90;G.energy=Math.min(100,G.energy+35);hud();await fade(false);await say('רופא/ה במיון','בדקנו הכל, אתה/את בסדר. מנוחה ושתייה! (+35 אנרגיה)')}}
+  if(k===2){G.fam.happy=Math.min(100,(G.fam.happy||70)+5);await say('','החולה שמח/ה מאוד מהביקור ❤ (+5 אושר משפחתי)')}if(k===3){player.lock=false;jobBoard(sc);return}player.lock=false}
+async function policeDesk(sc){player.lock=true;const unpaid=(G.fines||[]).filter(f=>!f.paid);const k=await say('שוטר/ת בדלפק','שלום, תחנת משטרה. במה לעזור?',[PJ?'לסיים את משמרת הסיור':'👮 לצאת למשמרת סיור (עבודה) · ₪200',`לשלם דוחות (${unpaid.length})`,'להגיש תלונה','להתראות']);player.lock=false;
+  if(k===0){PJ?endPoliceJob():startPoliceJob(sc)}else if(k===1){$('#phone').hidden=false;openApp('fines')}else if(k===2){await say('שוטר/ת בדלפק','התלונה נרשמה. נחזור אליך בהקדם. תודה!')}}
+/* ---------- police patrol job: write tickets for illegal parking ---------- */
+let PJ=null;const VIOL=[['רכב חונה על המדרכה, הולכי רגל עוקפים בכביש','חניה על המדרכה'],['רכב חונה ליד אבן שפה אדום-לבן','חניה באדום-לבן'],['רכב חונה במקום חניה של נכים בלי תו','חניה בחניית נכים'],['רכב חונה בתחנת אוטובוס','חניה בתחנת אוטובוס'],['רכב חוסם מעבר חציה','חניה על מעבר חציה']];
+function startPoliceJob(sc){const R=SCENES[sc];PJ={sc,cars:[],done:0,good:0};for(let i=0;i<5;i++){const a=Math.random()*6.28,r=rand(25,70);const p=freeSpot(R,sc,player.x+Math.cos(a)*r,player.z+Math.sin(a)*r,2.2);if(!p)continue;const c=vehicle('car',null,{body:pick(CARCOL),stripe:pick(CARCOL)});c.g.position.set(p.x,0,p.z);c.g.rotation.y=rand(0,6);R.s.add(c.g);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:exclTex(),depthTest:false,transparent:true}));sp.scale.set(.9,.9,1);sp.position.y=2.6;c.g.add(sp);const v=pick(VIOL);const o={c,x:p.x,z:p.z,v};o.id=addInter({scene:sc,x:p.x,z:p.z,r:3.2,mode:'walk',label:'📝 לרשום דוח',act:()=>ticket(o)});PJ.cars.push(o)}
+  toast(`👮 משמרת סיור: ${PJ.cars.length} רכבים חונים שלא כחוק בסביבה (❗)`,'good');pjObj()}
+function pjObj(){if(!PJ)return;const left=PJ.cars.filter(o=>!o.done);if(!left.length){endPoliceJob();return}let b=left[0],bd=1e9;for(const o of left){const d=Math.hypot(o.x-player.x,o.z-player.z);if(d<bd){bd=d;b=o}}setObj(`👮 דוח ${PJ.done+1}/${PJ.cars.length}`,{scene:PJ.sc,x:b.x,z:b.z})}
+async function ticket(o){if(o.done)return;player.lock=true;const opts=[o.v[1],...VIOL.filter(v=>v!==o.v).sort(()=>Math.random()-.5).slice(0,2).map(v=>v[1])].sort(()=>Math.random()-.5);
+  const k=await say('📝 רישום דוח',o.v[0]+'. מה העבירה?',opts);const ok=opts[k]===o.v[1];o.done=true;PJ.done++;if(ok)PJ.good++;delInter(o.id);o.c.g.children.filter(x=>x.isSprite).forEach(x=>o.c.g.remove(x));tone(ok?990:220,.12,.05);toast(ok?'✓ דוח נרשם נכון':'✕ טעות · העבירה הנכונה: '+o.v[1],ok?'good':'bad');player.lock=false;pjObj()}
+function endPoliceJob(){if(!PJ)return;const P=PJ;PJ=null;P.cars.forEach(o=>{if(o.id)delInter(o.id);setTimeout(()=>{if(o.c.g.parent)o.c.g.parent.remove(o.c.g)},8000)});const pay=80+P.good*30;earn(pay,'משטרה · משמרת סיור');try{funEv('shift');addXP(30)}catch(e){}setObj('',null);
+  card('👮 סוף משמרת סיור',`${P.done} דוחות`,`${P.good} נרשמו נכון. השכר: <b>${fmt(pay)}</b>.`,'יופי')}
+/* ---------- gas attendant job ---------- */
+let GJ=null;
+function startGasJob(sc,P){GJ={sc,P,left:6,done:0,good:0,car:null,t:2};toast('⛽ משמרת תדלוק התחילה · 6 רכבים','good')}
+function gasTick(dt){if(!GJ||cur.name!==GJ.sc)return;if(!GJ.car){GJ.t-=dt;if(GJ.t>0)return;if(GJ.left<=0){const pay=60+GJ.good*25;earn(pay,'תדלקן/ית · משמרת');try{funEv('shift');addXP(25)}catch(e){}card('⛽ סוף משמרת תדלוק',`${GJ.done} רכבים`,`${GJ.good} תודלקו בדיוק כמו שביקשו. השכר כולל טיפים: <b>${fmt(pay)}</b>.`,'יופי');GJ=null;setObj('',null);return}
+    const p=pick(GJ.P);const c=vehicle('car',null,{body:pick(CARCOL),stripe:pick(CARCOL)});c.g.position.set(p.x,0,p.z);c.g.rotation.y=Math.atan2(1,0);SCENES[GJ.sc].s.add(c.g);const req=pick([['95 מלא בבקשה','95 מלא'],['סולר ב-100 שקל','סולר ₪100'],['95 ב-50 שקל','95 ₪50'],['98 מלא, ותבדוק אוויר','98 מלא'],['סולר מלא','סולר מלא']]);
+    GJ.car={c,x:p.x,z:p.z,req};GJ.car.id=addInter({scene:GJ.sc,x:p.x,z:p.z,r:3,mode:'walk',label:'⛽ לתדלק את הרכב',act:()=>gasServe()});GJ.left--;tone(500,.1,.04);setObj('⛽ רכב הגיע למשאבה',{scene:GJ.sc,x:p.x,z:p.z})}}
+async function gasServe(){const C=GJ&&GJ.car;if(!C)return;player.lock=true;const all=['95 מלא','98 מלא','סולר מלא','95 ₪50','סולר ₪100'];const opts=[C.req[1],...all.filter(a=>a!==C.req[1]).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+  const k=await say('הנהג/ת',C.req[0]+'.',opts);const ok=opts[k]===C.req[1];GJ.done++;if(ok)GJ.good++;for(let i=0;i<5;i++)setTimeout(()=>tone(220+i*25,.15,.02,'sawtooth'),i*180);await sleep(1000);
+  await say('הנהג/ת',ok?'מעולה, תודה! הנה טיפ.':'זה לא מה שביקשתי... טוב, נו.');delInter(C.id);const c=C.c;setTimeout(()=>{if(c.g.parent)c.g.parent.remove(c.g)},600);GJ.car=null;GJ.t=3;player.lock=false}
+/* ---------- daily news: prices, protests, reforms, elections ---------- */
+function PF(){return G.news&&G.news.day===G.day?G.news.pf:1}
+const NEWS_T=[()=>({h:'📈 התייקרות: מחירי המזון והדלק עולים היום ב-6%',pf:1.06}),()=>({h:'📉 מבצעי חג: רשתות השיווק מורידות מחירים ב-8% היום',pf:.92}),
+  ()=>{const c=pick(WORLD.filter(w=>w.th||w.id==='out'));return{h:`📢 הפגנה נגד יוקר המחיה בכיכר המרכזית של ${c.n}`,protest:c.id}},()=>({h:'🚌 רפורמה בתחבורה: היום נוסעים באוטובוסים בחינם',busFree:true}),
+  ()=>({h:'🏠 רפורמת דיור: הנחה של 10% בשכר הדירה השבוע',rentCut:true}),()=>({h:'💼 שכר המינימום עולה: תוספת של 5% לכל המשכורות היום',wageUp:true}),()=>({h:'⛽ מחירי הדלק יורדים ב-4% מחצות',pf:.96}),
+  ()=>({h:'🏗 נפתח קניון חדש בעיר · מבצעי פתיחה בחנויות'}),()=>({h:'🚧 עבודות בכביש הטבעת · צפו לעומסים בשעות הבוקר'}),()=>({h:'🎭 פסטיבל רחוב בסוף השבוע · הופעות חינם בכיכרות'})];
+function rollNews(){if(G.news&&G.news.day===G.day)return;const n={day:G.day,items:[],pf:1};const picks=[...NEWS_T].sort(()=>Math.random()-.5).slice(0,3);for(const f of picks){const e=f();n.items.push(e.h);if(e.pf)n.pf*=e.pf;['protest','busFree','rentCut','wageUp'].forEach(k=>{if(e[k])n[k]=e[k]})}
+  if(G.elect&&G.elect.day>G.day&&G.elect.day-G.day<=3)n.items.unshift(`🗳 עוד ${G.elect.day-G.day} ימים לבחירות · אפשר להצביע גם באפליקציה`);if(G.weather==='rain')n.items.push('☔ גשם היום · נהגו בזהירות');G.news=n;save();
+  setTimeout(()=>{toast('📰 '+n.items[0],'');try{announce('חדשות: '+n.items[0].replace(/^[^֐-׿]+/,''),'radio')}catch(e){}},5500)}
+const _sdX=startDay;startDay=async function(){const r=await _sdX.apply(this,arguments);rollNews();return r};
+const _oaX=openApp;openApp=function(id){if(id!=='news')return _oaX(id);_oaX(id);rollNews();const v=$('#pview');const N=G.news;v.innerHTML=`<div class="pbody"><div class="prow"><b>📰 חדשות היום · יום ${G.day}</b></div>${N.items.map(h=>`<div class="newsi">${esc(h)}</div>`).join('')}${N.pf!==1?`<div class="prow"><span>מדד המחירים היום</span><b style="color:${N.pf>1?'#f87171':'#4ade80'}">${N.pf>1?'+':''}${Math.round((N.pf-1)*100)}%</b></div>`:''}<small style="color:var(--muted)">החדשות משתנות כל בוקר ומשפיעות על המשחק: מחירים, שכר דירה, תחבורה ומשכורות.</small></div>`};
+const _ewX=endWork;endWork=async function(rows,bonus,good,quote){if(G.news&&G.news.day===G.day&&G.news.wageUp){const extra=Math.round((G.shiftH||8)*((G.jobs&&G.jobs[G.job]&&G.jobs[G.job].wage)||40)*.05);setTimeout(()=>earn(extra,'רפורמת שכר מינימום (+5%)'),1200)}return _ewX.apply(this,arguments)};
+const _cbbX=cbBoard;cbBoard=async function(){if(G.news&&G.news.day===G.day&&G.news.busFree){const R0=G.ravkav;const had=R0.has,b0=R0.bal;R0.has=true;R0.bal=b0+6;toast('🚌 נסיעה חינם היום (רפורמה)','good');await _cbbX();R0.has=had;R0.bal=Math.max(0,Math.min(R0.bal,b0));return}return _cbbX()};
+/* protests: a crowd with signs in the main square on protest day */
+let PROT=null;
+function protestTick(){const N=G.news;const want=N&&N.day===G.day&&N.protest&&cur&&cur.name===N.protest;if(!want){if(PROT){PROT.npcs.forEach(n=>{try{removeNpc(n)}catch(e){}});PROT=null}return}if(PROT&&PROT.R===cur)return;
+  const R=cur,cx=cur.name==='out'?-168:0,cz=cur.name==='out'?-2:30;PROT={R,npcs:[]};const slog=['יוקר המחיה!','דיור בר השגה','שכר הוגן לכולם','תחבורה ציבורית טובה'];
+  for(let i=0;i<16;i++){const n=npc(cur.name,pick(PED),cx+rand(-8,8),cz+rand(-4,4),Math.PI);n.solid=false;n.walk={a:{x:cx-9,z:n.z},b:{x:cx+9,z:n.z},to:1,sp:.5};n.target={x:cx+9,z:n.z};n.speed=.5;
+    if(i%2){const s=sign([pick(slog)],1.2,.6,{bg:'#fff',fg:'#b91c1c',size:90,w:384,h:180});s.position.set(0,2.4,.1);n.h.g.add(s);n.h.armR.rotation.x=-2.6}PROT.npcs.push(n)}
+  toast('📢 יש הפגנה בכיכר היום','');}
+let CHANT=0;function chantTick(dt){if(!PROT)return;CHANT-=dt;if(CHANT<=0){CHANT=rand(3,6);const d=Math.hypot(player.x-(cur.name==='out'?-168:0),player.z-(cur.name==='out'?-2:30));if(d<45){noiseBurst(.6,400,900,.04*(1-d/45),'bandpass');tone(220,.3,.02*(1-d/45),'sawtooth',.1)}}}
+const _tickX=V8.tick;V8.tick=function(dt){_tickX(dt);try{fuelTick(dt);screenTick();gasTick(dt);protestTick();chantTick(dt);if(cur&&cur.polLights){const on=Math.sin(performance.now()/180)>0;cur.polLights.forEach(l=>l.material.color.setHex(on?0x3b82f6:0xef4444))}}catch(e){console.warn(e)}};
+
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
   if(good)J.good++;let promo='';const tl=JOBS[G.job].titles;
@@ -3881,7 +3997,7 @@ async function startDay(){ensureV8State();ensureGenJob();
   ensureApt();goScene('apt',APT.start.x,APT.start.z,-Math.PI/2);hud();player.lock=false;
   await fade(false);
   // weekly bills
-  if(G.day%7===0){const rent=G.house.rent||700,el=120,arn=90,tel=G.hasPhone?60:0,fam=famWeekly();const tot=rent+el+arn+tel+fam.cost-fam.inc;G.money-=tot;addTx('חשבונות שבועיים',-tot,'הוראת קבע');
+  if(G.day%7===0){const rent=Math.round((G.house.rent||700)*(G.news&&G.news.rentCut&&G.news.day>=G.day-6?.9:1)),el=120,arn=90,tel=G.hasPhone?60:0,fam=famWeekly();const tot=rent+el+arn+tel+fam.cost-fam.inc;G.money-=tot;addTx('חשבונות שבועיים',-tot,'הוראת קבע');
     let card2='';if(G.bank.debt){G.money-=G.bank.debt;addTx('חיוב כרטיס אשראי',-G.bank.debt,'אשראי');card2=`<br>חיוב אשראי: <b>${fmt(G.bank.debt)}</b>`;G.bank.debt=0}
     hud();save();await card('יום '+G.day+' · סוף שבוע','החשבונות הגיעו',`${fam.txt}שכירות ${fmt(rent)} · חשמל ${fmt(el)} · ארנונה ${fmt(arn)}${tel?' · טלפון '+fmt(tel):''}${card2}<br>נשאר בחשבון: <b>${fmt(G.money)}</b>${G.money<0?'<br><span style="color:var(--red)">אתה במינוס! הבנק גובה ריבית. כדאי לעבוד טוב השבוע.</span>':''}`,'הבנתי')}
   lateFines();await dailyLife();
