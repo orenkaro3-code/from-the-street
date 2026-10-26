@@ -3974,6 +3974,52 @@ function protestTick(){const N=G.news;const want=N&&N.day===G.day&&N.protest&&cu
 let CHANT=0;function chantTick(dt){if(!PROT)return;CHANT-=dt;if(CHANT<=0){CHANT=rand(3,6);const d=Math.hypot(player.x-(cur.name==='out'?-168:0),player.z-(cur.name==='out'?-2:30));if(d<45){noiseBurst(.6,400,900,.04*(1-d/45),'bandpass');tone(220,.3,.02*(1-d/45),'sawtooth',.1)}}}
 const _tickX=V8.tick;V8.tick=function(dt){_tickX(dt);try{fuelTick(dt);screenTick();gasTick(dt);protestTick();chantTick(dt);if(cur&&cur.polLights){const on=Math.sin(performance.now()/180)>0;cur.polLights.forEach(l=>l.material.color.setHex(on?0x3b82f6:0xef4444))}}catch(e){console.warn(e)}};
 
+/* ====================== V8 PART Y: big taxi depot in every city — dispatcher, numbered cabs in bays, shift starts and ends at the depot ====================== */
+const TDEP={};
+function buildTaxiDepot(R,sc,o){const S=R.s;const {x0,x1,z0,z1}=o;const cx=(x0+x1)/2,cz=(z0+z1)/2,W=x1-x0,D=z1-z0;
+  noPlane(S,W,D,cx,cz,.025,0x2b3036,asphaltTex,W/10,D/10);const bays=[];
+  for(const rz of o.rows){for(let x=x0+6;x<=x1-6;x+=o.step){for(const s of[-1,1]){const l=new THREE.Mesh(new THREE.PlaneGeometry(.16,5.2),M(0xfacc15));l.rotation.x=-Math.PI/2;l.position.set(x+s*o.step/2,.03,rz);S.add(l)}bays.push({x,z:rz,yaw:rz<cz?0:Math.PI,car:null})}}
+  const fence=M(0x9ca3af,{metalness:.5});for(const [a,b,c,d] of[[x0,z0,x1,z0],[x0,z1,x1,z1],[x0,z0,x0,z1],[x1,z0,x1,z1]]){if(o.open&&((o.open==='x0'&&a===x0&&c===x0)||(o.open==='x1'&&a===x1&&c===x1)||(o.open==='z0'&&b===z0&&d===z0)||(o.open==='z1'&&b===z1&&d===z1)))continue;const f=box(Math.abs(c-a)||.12,1.2,Math.abs(d-b)||.12,fence);f.position.set((a+c)/2,.6,(b+d)/2);S.add(f)}
+  const bo=o.booth;noBld(R,bo.x,bo.z,6,5,3.4,0xfef9c3,'🚕 מוניות '+cityName(sc)+' · סדרן','#ca8a04',{x:bo.x+bo.f[0]*2.6,z:bo.z+bo.f[1]*2.6},bo.f);
+  const disp=npc(sc,{shirt:0xfacc15,pants:0x1f2937,cap:0x111111,badge:1},bo.x+bo.f[0]*3.6,bo.z+bo.f[1]*3.6,Math.atan2(bo.f[0],bo.f[1]));disp.static=true;disp.h.talk=1e9;
+  const big=sign(['🚕 תחנת מוניות · '+cityName(sc),'משמרות 24/7 · דרושים נהגים'],10,2,{bg:'#facc15',fg:'#111',sub:'#111',size:84,w:768,h:160});big.position.set(o.sign.x,4.2,o.sign.z);big.rotation.y=o.sign.ry;S.add(big);
+  for(const s of[-1,1]){const p=_cyl(.12,.12,4.4,0x111827,8);p.position.set(o.sign.x+Math.cos(o.sign.ry)*s*4.6,2.2,o.sign.z-Math.sin(o.sign.ry)*s*4.6);S.add(p)}
+  const T={R,bays,booth:bo,ids:[]};TDEP[sc]=T;bays.forEach((b,i)=>{if(i%5===3)return;const c=depotCab(sc,b,10+i*3+seedOf(sc)%7)});
+  const id=addInter({scene:sc,x:bo.x+bo.f[0]*4.6,z:bo.z+bo.f[1]*4.6,r:2.6,mode:'walk',label:()=>TX&&TX.depot?'🚕 הסדרן · להחזיר את המונית לחניה':'🚕 משרד הסדרן · להתחיל משמרת נהג/ת מונית',act:()=>depotDesk(sc)});T.ids.push(id);if(R.isGen&&R.inters)R.inters.push(id);
+  if(MAPD[sc])MAPD[sc].pois.push({n:'תחנת מוניות · סדרן',x:bo.x,z:bo.z,c:'#ca8a04',ic:'🚕',big:1});castAll(S);return T}
+function depotCab(sc,b,no){const c=taxiCar();c.no=no;c.x=b.x;c.z=b.z;c.yaw=b.yaw;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;const T=SCENES[sc];T.s.add(c.g);T.cars.push(c);b.car=c;c.bay=b;
+  const n=sign([String(no)],.5,.3,{bg:'#111',fg:'#facc15',size:110,w:160,h:96});n.position.set(.9,1.05,0);n.rotation.y=Math.PI/2;c.g.add(n);const n2=n.clone();n2.position.x=-.9;n2.rotation.y=-Math.PI/2;c.g.add(n2);return c}
+async function depotDesk(sc){const T=TDEP[sc];player.lock=true;
+  if(TX&&TX.depot){await say('הסדרן','תחזיר/י את המונית לאחת החניות הצהובות פה, תעביר/י ל-P, ונסגור חשבון.');player.lock=false;setObj('🅿 להחזיר את המונית לחניה בתחנה',{scene:sc,x:T.bays[0].x,z:T.bays[0].z});return}
+  if(TX){await say('הסדרן','את/ה כבר במשמרת עם מונית אחרת.');player.lock=false;return}
+  const free=T.bays.filter(b=>b.car&&!b.car.taken);if(!free.length){await say('הסדרן','כל המוניות בחוץ כרגע. נסה/י עוד מעט.');player.lock=false;return}
+  const k=await say('הסדרן','בוקר טוב! משמרת של 12 שעות: הנסיעות שלך, ובסוף כשמחזירים את המונית מקבלים עוד ₪120 שכר בסיס. מוכן/ה?',['כן, תן לי מונית','מה החוקים?','לא עכשיו']);
+  if(k===1){await say('הסדרן','1. אוספים נוסעים מהאפליקציה. 2. נוסעים לפי החוק, בלי תאונות. 3. בסוף המשמרת מחזירים את המונית לחניה פה ומעבירים ל-P.');}
+  if(k===2){player.lock=false;return}const b=pick(free),c=b.car;c.taken=true;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:exclTex(),depthTest:false,transparent:true}));sp.scale.set(.8,.8,1);sp.position.y=2.7;c.g.add(sp);c.mark=sp;
+  await say('הסדרן',`קח/י את מונית מס׳ ${c.no}. המפתחות בפנים. נסיעה טובה!`);player.lock=false;setObj(`🚕 להיכנס למונית מס׳ ${c.no}`,{scene:sc,x:c.x,z:c.z});
+  const id=addInter({scene:sc,x:()=>c.x,z:()=>c.z,r:3,mode:'walk',label:`🚕 להיכנס למונית מס׳ ${c.no}`,when:()=>!TX||TX.car===c,act:()=>{if(c.mark){c.g.remove(c.mark);c.mark=null}if(!TX)startTaxiWith(sc,c);enterCar(c)}});T.ids.push(id);if(T.R.isGen&&T.R.inters)T.R.inters.push(id)}
+function startTaxiWith(sc,c){if(c.bay)c.bay.car=null;TX={sc,car:c,state:'free',earn:0,rides:0,t:0,ids:[],depot:true,start:G.clockMin,no:c.no};
+  TX.ids.push(addInter({scene:sc,x:()=>player.x,z:()=>player.z,r:1,mode:'drive',label:'לצאת מהמונית',when:()=>player.car===c&&Math.abs(c.speed)<1.5&&TX&&TX.state!=='onboard',act:()=>exitCar()}));toast(`🚕 מונית מס׳ ${c.no} · המשמרת התחילה! הזמנות יגיעו באפליקציה`,'good')}
+const _etY=endTaxi;endTaxi=function(silent){if(TX&&TX.depot){const T=TDEP[TX.sc];if(silent){const c=TX.car,b=T&&T.bays.find(x=>!x.car);TX.ids.forEach(delInter);if(player.car===c){player.mode='walk';player.car=null;player.h.g.visible=true;$('#speedo').hidden=true}
+      if(b&&SCENES[TX.sc]){c.x=b.x;c.z=b.z;c.yaw=b.yaw;c.speed=0;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;b.car=c;c.bay=b;c.taken=false}TX=null;const p=$('#taxiPanel');if(p)p.hidden=true;return}
+    if(T){toast('🚕 צריך להחזיר את המונית לתחנת המוניות','bad');setObj('🅿 להחזיר את המונית לתחנה',{scene:TX.sc,x:T.bays[0].x,z:T.bays[0].z});TX.returning=true}return}return _etY(silent)};
+function depotReturnTick(){if(!TX||!TX.depot||player.car!==TX.car||TX.state!=='free'&&TX.state!=='pickup')return;const T=TDEP[TX.sc];if(!T)return;const c=TX.car;
+  const b=T.bays.find(x=>!x.car&&Math.hypot(c.x-x.x,c.z-x.z)<3.2);if(!b){if(TX.returning&&!TX._hint){const near=T.bays.some(x=>Math.hypot(c.x-x.x,c.z-x.z)<15);if(near){TX._hint=1;toast('🅿 עמוד/י בתוך אחת החניות הצהובות ועבור/י ל-P')}}return}
+  if(gearOf(c)!=='P'||Math.abs(c.speed)>.3){if(!TX._ph){TX._ph=1;toast('🅿 אתה בחניה · עבור/י ל-P כדי להחזיר את המונית')}return}
+  if(TX.state==='pickup'&&TX.pax&&TX.pax.n){try{removeNpc(TX.pax.n)}catch(e){}}const S=TX;c.x=b.x;c.z=b.z;c.yaw=b.yaw;c.g.position.set(c.x,0,c.z);c.g.rotation.y=c.yaw;b.car=c;c.bay=b;c.taken=false;S.ids.forEach(delInter);TX=null;
+  player.mode='walk';player.car=null;player.h.g.visible=true;player.x=b.x+2.4;player.z=b.z;$('#speedo').hidden=true;$('#camBtn').hidden=true;const p=$('#taxiPanel');if(p)p.hidden=true;setObj('',null);
+  const hrs=Math.max(1,Math.round((G.clockMin-S.start)/60));const base=120;earn(base,'תחנת מוניות · שכר בסיס');try{funEv('shift');addXP(30)}catch(e){}tone(660,.1,.04);tone(990,.15,.04,'sine',.12);
+  card('🚕 החזרת את המונית',`מונית מס׳ ${S.no} · ${S.rides} נסיעות`,`הכנסות מנסיעות וטיפים: <b>${fmt(S.earn)}</b><br>שכר בסיס מהתחנה: <b>${fmt(base)}</b><br>סה״כ היום: <b>${fmt(S.earn+base)}</b>`,'מעולה')}
+/* placement: big cities (north strip, next to the market) and Neve-Or (south of downtown) */
+GEN_CIVIC.mkt={x0:-44,x1:-8,z:-98};
+const _bgcY=buildGenCity;buildGenCity=function(def){const R=_bgcY(def);try{buildTaxiDepot(R,def.id,{x0:2,x1:50,z0:-111,z1:-85,rows:[-104,-92],step:8,open:'z0',booth:{x:46,z:-90,f:[-1,0]},sign:{x:26,z:-111.4,ry:0}})}catch(e){console.warn('depot',e)}return R};
+const _initY=V8.init;V8.init=function(){_initY();try{const S=OUT.s;noPlane(S,14,34,-210,-127,.02,0x9a9da2,asphaltTex,1,3);MAPD.out.roads.push({x1:-210,z1:-110,x2:-210,z2:-142,w:14,n:'שדרות נווה-אור'});
+  buildTaxiDepot(OUT,'out',{x0:-202,x1:-148,z0:-145,z1:-112,rows:[-136,-121],step:9,open:'x0',booth:{x:-153,z:-116,f:[-1,0]},sign:{x:-202.4,z:-128,ry:-Math.PI/2}})}catch(e){console.warn('no depot',e)}};
+const _tickY=V8.tick;V8.tick=function(dt){_tickY(dt);try{depotReturnTick()}catch(e){console.warn(e)}};
+/* taxi app: show the depot */
+const _appY=V8.app;V8.app=function(id,body){_appY(id,body);if(id!=='taxi')return;const v=$('#pview');const sc=curCity(),T=TDEP[sc];if(!T)return;const b=document.createElement('button');b.className='pbtn';b.style.margin='0 12px 12px';b.textContent=TX&&TX.depot?'🅿 ניווט להחזרת המונית לתחנה':'🚕 ניווט לתחנת המוניות (משמרת עם סדרן)';v.appendChild(b);
+  b.addEventListener('click',()=>{if(cur.name!==sc){toast('צא/י קודם לרחוב');return}setObj('🚕 תחנת מוניות',{scene:sc,x:T.booth.x+T.booth.f[0]*4.6,z:T.booth.z+T.booth.f[1]*4.6});$('#phone').hidden=true})};
+
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
   if(good)J.good++;let promo='';const tl=JOBS[G.job].titles;
