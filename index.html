@@ -1,9 +1,3 @@
-<!doctype html>
-<html lang="he" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>*,*::before,*::after{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>מהרחוב למשמרת</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -286,6 +280,7 @@ button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #psens{flex-direction:row!important;gap:10px!important;align-items:center}.pscar{display:flex;flex-direction:column;align-items:center;gap:2px}.psrow{display:flex;gap:3px}.psrow i{width:20px;height:7px;border-radius:4px;background:#334155}.psrow i.l1{background:#22c55e}.psrow i.l2{background:#facc15}.psrow i.l3{background:#f97316}.psrow i.l4{background:#dc2626;box-shadow:0 0 8px #dc2626}.psbody{font-size:24px;line-height:1}
 .psinfo{display:flex;flex-direction:column;align-items:center}.psinfo b{font:700 18px var(--f-mono)}.psstop{background:#dc2626;color:#fff;font-weight:900;border-radius:6px;padding:1px 8px;animation:pop .4s ease infinite alternate}
 #apBtn{bottom:356px;inset-inline-end:16px;z-index:7}#apBtn.on{background:#2563eb;color:#fff}#parkBtn{bottom:190px;left:50%;transform:translateX(-50%);background:#2563eb;color:#fff;border:0;border-radius:22px;padding:10px 20px;font-weight:900;font-size:16px;cursor:pointer;z-index:8;animation:pop .6s ease infinite alternate}
+#sigBox{bottom:150px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:rgba(11,20,28,.88);border:1px solid var(--line);border-radius:14px;padding:5px 8px;z-index:7;color:#94a3b8;font-size:11px;text-align:center;line-height:1.1}#sigBox button{width:46px;height:36px;border-radius:9px;border:1px solid #334155;background:#1f2937;color:#475569;font-size:22px;cursor:pointer}#sigBox button.arm{border-color:#16a34a;color:#86efac}#sigBox button.lit{background:#16a34a;color:#fff;box-shadow:0 0 14px #22c55e}
 #gearBox{bottom:110px;inset-inline-end:16px;display:flex;gap:4px;background:rgba(11,20,28,.88);border:1px solid var(--line);border-radius:12px;padding:5px;z-index:7}#gearBox button{width:34px;height:34px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#94a3b8;font:800 16px var(--f-mono);cursor:pointer}#gearBox button.on{background:#16a34a;color:#fff;border-color:#4ade80}#gearBox button.r.on{background:#dc2626;border-color:#f87171}
 #psens{top:42%;left:50%;transform:translateX(-50%);background:rgba(11,20,28,.88);border-radius:12px;padding:6px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;z-index:7}.psbars{display:flex;gap:3px}.psbars i{width:26px;height:8px;border-radius:3px;background:#334155}.psbars i.on.l1{background:#22c55e}.psbars i.on.l2{background:#facc15}.psbars i.on.l3{background:#f97316}.psbars i.on.l4{background:#dc2626}#psens small{color:var(--muted);font-size:11px}
 #hornBtn{bottom:314px;inset-inline-end:16px;z-index:7}#busRadio{top:360px;left:10px;width:min(270px,62vw);background:rgba(6,20,12,.9);border:1px solid #16a34a;border-radius:10px;padding:8px;font-size:12px;display:flex;flex-direction:column;gap:3px;z-index:6;color:#bbf7d0}.stopreq{background:#dc2626;color:#fff;font-weight:900;text-align:center;border-radius:6px;padding:4px;font-size:16px;animation:pop .5s ease infinite alternate}
@@ -2107,7 +2102,7 @@ function applyGenEnv(R,force){if(!force&&R.envSeen===envName)return;R.envSeen=en
 function updateGenCity(R,dt){applyGenEnv(R);R.sun.position.set(player.x-40,envName==='dawn'||envName==='evening'?30:75,player.z+30);R.sun.target.position.set(player.x,0,player.z);
   if(R.fountain){const F=R.fountain,a=F.geo.attributes.position.array;for(let i=0;i<F.N;i++){const s=F.seed[i];s.t+=dt*.55*s.v;if(s.t>1)s.t-=1;const t=s.t;const r=.3+t*4.6;a[i*3]=Math.cos(s.a)*r;a[i*3+1]=3.4+t*3.2-t*t*6;a[i*3+2]=Math.sin(s.a)*r}F.geo.attributes.position.needsUpdate=true}
   for(const d of R.doors){const near=Math.hypot(player.x-d.x,player.z-d.z)<4.2;d.o+=((near?1:0)-d.o)*Math.min(1,dt*5);d.l.position.x=-.37-d.o*.7;d.r.position.x=.37+d.o*.7}
-  for(const T of R.traffic){const v=T.v;const sy=Math.sin(v.yaw),cy=Math.cos(v.yaw);let target=T.sp;const rx=player.x-v.x,rz=player.z-v.z,ah=rx*sy+rz*cy;if(player.mode==='walk'&&ah>.5&&ah<9&&Math.abs(rx*cy-rz*sy)<2)target=0;
+  for(const T of R.traffic){const v=T.v;const sy=Math.sin(v.yaw),cy=Math.cos(v.yaw);let target=T.sp;const rx=player.x-v.x,rz=player.z-v.z,ah=rx*sy+rz*cy;if((player.mode==='walk'&&ah>.5&&ah<9&&Math.abs(rx*cy-rz*sy)<2)||(player.mode==='drive'&&player.car!==v&&ah>.5&&ah<8.5&&Math.abs(rx*cy-rz*sy)<2.2))target=0;
     v.speed+=Math.max(-9*dt,Math.min(4*dt,target-v.speed));T.s=(T.s+v.speed*dt)%T.tot;const sg=T.segs.find(s=>T.s>=s.s0&&T.s<s.s0+s.L)||T.segs[0];const f=(T.s-sg.s0)/sg.L;v.x=sg.p.x+(sg.q.x-sg.p.x)*f;v.z=sg.p.z+(sg.q.z-sg.p.z)*f;
     const ty=Math.atan2(sg.q.x-sg.p.x,sg.q.z-sg.p.z);let d=ty-v.yaw;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;v.yaw+=d*Math.min(1,dt*6);v.g.position.set(v.x,0,v.z);v.g.rotation.y=v.yaw}
   if(R.flags)R.flags.forEach((f,i)=>{f.rotation.y=Math.sin(clock*2+i)*.25});
@@ -4062,6 +4057,83 @@ txPay=async function(){const P=TX.pax,M=meterFare(TX.m0),f=M.total,dur=TX.t-TX.m
   earn(tot,'מונית · נסיעה עם '+P.name);TX.earn+=tot;TX.rides++;try{funEv('taxi');addXP(15)}catch(e){}$('#txOk').disabled=false;await new Promise(r=>$('#txOk').addEventListener('click',r,{once:true}));ov.hidden=true;player.lock=false;doorSound(false);
   announce(pick(['תודה, נסיעה נעימה!','תודה רבה, יום טוב!','היה מצוין, תודה!']),'radio');TX.state='free';TX.next=5;TX.pax=null;setObj('🚕 מחכה להזמנה הבאה...',null)};
 
+/* ===== v9a: tight vehicle collision (real box shape) · turn signals · other drivers honk at you ===== */
+function vDims(c){if(!c)return null;if(c.hw)return c;const k=c.kind;if(k==='bus'){c.hw=1.27;c.hl=5.55}else if(k==='van'){c.hw=1.02;c.hl=2.35}else if(k==='car'||k==='taxi'){c.hw=.92;c.hl=2.15}else return null;return c}
+function obbPush(x,z,r,c){const s=Math.sin(c.yaw),co=Math.cos(c.yaw),dx=x-c.x,dz=z-c.z;let lx=dx*co-dz*s,lz=dx*s+dz*co;
+  const qx=Math.max(-c.hw,Math.min(c.hw,lx)),qz=Math.max(-c.hl,Math.min(c.hl,lz));const ex=lx-qx,ez=lz-qz,d=Math.hypot(ex,ez);if(d>=r)return null;
+  if(d>1e-4){lx=qx+ex/d*r;lz=qz+ez/d*r}else{const px=c.hw-Math.abs(lx),pz=c.hl-Math.abs(lz);if(px<pz)lx=(lx<0?-1:1)*(c.hw+r);else lz=(lz<0?-1:1)*(c.hl+r)}
+  return{x:c.x+lx*co+lz*s,z:c.z-lx*s+lz*co}}
+function circleCols(x,z,r,ignore,res){const B=cur.bounds;x=Math.max(B.x0+r,Math.min(B.x1-r,x));z=Math.max(B.z0+r,Math.min(B.z1-r,z));
+  for(const c of cur.cols){const nx=Math.max(c.x0,Math.min(c.x1,x)),nz=Math.max(c.z0,Math.min(c.z1,z));const dx=x-nx,dz=z-nz,d=Math.hypot(dx,dz);
+    if(d<r){res.hit=true;if(d>1e-4){x=nx+dx/d*r;z=nz+dz/d*r}else{const pl=[x-c.x0,c.x1-x,z-c.z0,c.z1-z];const m=Math.min(...pl);if(m===pl[0])x=c.x0-r;else if(m===pl[1])x=c.x1+r;else if(m===pl[2])z=c.z0-r;else z=c.z1+r}}}
+  for(const c of cur.cars){if(c===ignore||!c.g||c.g.visible===false&&c!==player.car)continue;
+    if(vDims(c)){const p=obbPush(x,z,r,c);if(p){res.hit=true;res.car=c;x=p.x;z=p.z}}
+    else{const dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz),rr=r+(c.r||1);if(d<rr&&d>1e-4){res.hit=true;res.car=c;x=c.x+dx/d*rr;z=c.z+dz/d*rr}}}
+  for(const n of cur.npcs){if(n.static||!n.solid)continue;const dx=x-n.x,dz=z-n.z,d=Math.hypot(dx,dz),rr=r+.4;if(d<rr&&d>1e-4){x=n.x+dx/d*rr;z=n.z+dz/d*rr}}
+  return{x,z}}
+collide=function(x,z,r,ignore){const res={hit:false,car:null};
+  if(ignore&&vDims(ignore)){// the vehicle you drive = a row of circles along its real length, so only actual contact stops it
+    const f={x:Math.sin(ignore.yaw),z:Math.cos(ignore.yaw)},R=ignore.hw,n=ignore.kind==='bus'?5:3,span=ignore.hl-R;
+    for(let pass=0;pass<2;pass++)for(let i=0;i<n;i++){const o=n===1?0:-span+2*span*i/(n-1);const cx=x+f.x*o,cz=z+f.z*o;const p=circleCols(cx,cz,R,ignore,res);x+=p.x-cx;z+=p.z-cz}
+    if(res.car)res.car._bump=V9.t;return{x,z,hit:res.hit}}
+  const p=circleCols(x,z,r,ignore,res);return{x:p.x,z:p.z,hit:res.hit}};
+const V9={t:0};
+/* ---------- indicator lights on any vehicle ---------- */
+function addBlinkers(v){if(v.ind||!v.g||!vDims(v))return v.ind;try{const mk=()=>new THREE.MeshBasicMaterial({color:0xffa31a,transparent:true,opacity:.12});const mL=mk(),mR=mk();const y=v.kind==='bus'?1.1:v.kind==='van'?.95:.78;
+  const add=(m,sx,sz)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(.22,.13,.07),m);b.position.set(sx*(v.hw-.12),y,sz*(v.hl+.03));v.g.add(b);const s=new THREE.Mesh(new THREE.BoxGeometry(.05,.1,.2),m);s.position.set(sx*(v.hw+.02),y+.05,sz*(v.hl-.6));v.g.add(s)};
+  for(const sz of[-1,1]){add(mL,1,sz);add(mR,-1,sz)}v.ind={L:mL,R:mR}}catch(e){v.ind={L:{opacity:0},R:{opacity:0}}}return v.ind}
+function setBlink(v,side,on){const I=addBlinkers(v);if(!I)return;I.L.opacity=side===-1&&on?1:.12;I.R.opacity=side===1&&on?1:.12}
+/* ---------- your turn signals ---------- */
+const SIG={s:0,ph:0,lit:false,acc:0,turn:0,used:{'-1':-99,'1':-99},cd:0,miss:0,since:0};
+function sigSet(s){if(player.mode!=='drive'||!player.car)return;SIG.s=SIG.s===s?0:s;SIG.ph=0;SIG.lit=false;SIG.turn=0;if(SIG.s)SIG.used[SIG.s]=V9.t;tone(SIG.s?1250:900,.04,.04,'square');sigHud(true)}
+function sigHud(force){let h=$('#sigBox');const on=player.mode==='drive'&&!!player.car;if(!h){if(!on)return;h=document.createElement('div');h.id='sigBox';h.className='hud';h.innerHTML='<button data-s="-1" title="איתות שמאלה (Z)">⬅</button><span>איתות<br><small>Z / X</small></span><button data-s="1" title="איתות ימינה (X)">➡</button>';document.querySelector('#game').appendChild(h);
+    h.addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(b)sigSet(+b.dataset.s)})}
+  h.hidden=!on;if(!on)return;const L=h.querySelector('[data-s="-1"]'),R=h.querySelector('[data-s="1"]');L.classList.toggle('lit',SIG.s===-1&&SIG.lit);R.classList.toggle('lit',SIG.s===1&&SIG.lit);L.classList.toggle('arm',SIG.s===-1);R.classList.toggle('arm',SIG.s===1)}
+addEventListener('keydown',e=>{if(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;if(player.mode!=='drive'||!player.car||e.repeat)return;
+  if(e.code==='KeyZ'||e.key==='ז')sigSet(-1);else if(e.code==='KeyX'||e.key==='ס')sigSet(1)});
+function sigTick(dt){const c=player.car;if(player.mode!=='drive'||!c){if(SIG.s){SIG.s=0}SIG.acc=0;sigHud();return}
+  if(SIG.s){SIG.ph+=dt;if(SIG.ph>=.38){SIG.ph=0;SIG.lit=!SIG.lit;tone(SIG.lit?1180:980,.035,.035,'square')}SIG.used[SIG.s]=V9.t}else SIG.lit=false;
+  setBlink(c,SIG.s,SIG.lit);sigHud();
+  // yaw rate: positive = left, negative = right
+  let dy=c.yaw-(c._py??c.yaw);while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;c._py=c.yaw;
+  const auto=(typeof AP!=='undefined'&&AP)||(typeof PARK!=='undefined'&&PARK);
+  // self-cancel after the turn, like a real car
+  if(SIG.s){const dirTurn=-SIG.s*dy;if(dirTurn>0)SIG.turn+=dirTurn;if(SIG.turn>.75&&Math.abs(c.steerVis||0)<.12){SIG.s=0;SIG.turn=0;tone(800,.05,.03,'square')}}
+  if(SIG.cd>0)SIG.cd-=dt;
+  if(Math.abs(c.speed)>2.5&&!auto&&c.gear!=='R'&&c.speed>0)SIG.acc+=dy;SIG.acc*=Math.exp(-dt/2.6);
+  if(Math.abs(SIG.acc)>.95){const side=SIG.acc>0?-1:1;SIG.acc=0;if(V9.t-SIG.used[side]>6&&SIG.cd<=0){SIG.cd=3;noSignal(side)}}}
+function noSignal(side){SIG.miss++;const w=side===1?'ימינה':'שמאלה';G.stats=G.stats||{};G.stats.noSig=(G.stats.noSig||0)+1;
+  let msg='⚠️ פנית '+w+' בלי לאותת! (Z = שמאלה · X = ימינה)';
+  if(typeof BUSJOB!=='undefined'&&BUSJOB){BUSJOB.nosig=(BUSJOB.nosig||0)+1;msg='⚠️ נוסע: "נהג, תאותת!" · פנייה '+w+' בלי איתות'}
+  else if(typeof TX!=='undefined'&&TX&&TX.state==='onboard'){TX.nosig=(TX.nosig||0)+1;msg='⚠️ הנוסע: "אתה לא מאותת? זה מסוכן" · פחות טיפ'}
+  toast(msg,'bad');const v=nearestTraffic(35);if(v)setTimeout(()=>npcHonk(v,'בלי איתות'),350);
+  if(SIG.miss%3===0){const fine=100;G.money-=fine;addTx('קנס: פנייה בלי איתות',-fine,'מצלמה');hud();save();setTimeout(()=>toast('📸 מצלמת תנועה: קנס ₪'+fine+' על פנייה בלי איתות','bad'),1200)}}
+/* taxi passengers tip less when you don't signal */
+if(typeof txPay==='function'){const _txp9=txPay;txPay=async function(){const n=TX&&TX.nosig||0;const r=await _txp9.apply(this,arguments);if(n&&TX){const cut=Math.min(G.money,n*3);if(cut>0){G.money-=cut;addTx('טיפ שירד · לא איתתת',-cut,'מזומן');hud()}TX.nosig=0}return r}}
+/* ---------- other drivers: indicators + honking ---------- */
+function trafficNow(){if(!cur)return[];if(typeof OUT!=='undefined'&&cur===OUT)return TRAFFIC;if(cur.traffic)return cur.traffic.map(t=>t.v);return[]}
+function nearestTraffic(max){let b=null,bd=max;for(const v of trafficNow()){if(v===player.car)continue;const d=Math.hypot(v.x-player.x,v.z-player.z);if(d<bd){bd=d;b=v}}return b}
+let HTEX=null;function honkTex(){if(HTEX)return HTEX;const cv=document.createElement('canvas');cv.width=256;cv.height=96;const x=cv.getContext('2d');x.fillStyle='rgba(220,38,38,.92)';x.beginPath();x.roundRect?x.roundRect(4,4,248,88,40):x.rect(4,4,248,88);x.fill();x.fillStyle='#fff';x.font='bold 50px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('📢 טוּוּט!',128,50);HTEX=new THREE.CanvasTexture(cv);return HTEX}
+function npcHonk(v,why){if(!v||(v._hcd||0)>V9.t)return;v._hcd=V9.t+4;v._hp=v._hp||rand(360,560);const d=Math.hypot(v.x-player.x,v.z-player.z),vol=.075*Math.max(.18,1-d/45),bus=v.kind==='bus',f=bus?300:v._hp;
+  tone(f,.32,vol,'square');tone(f*1.26,.32,vol*.8,'square');if(Math.random()<.5){tone(f,.22,vol,'square',.42);tone(f*1.26,.22,vol*.8,'square',.42)}
+  try{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:honkTex(),transparent:true,depthTest:false}));s.scale.set(2.6,1,1);s.position.set(0,bus?4.3:2.9,0);v.g.add(s);setTimeout(()=>{v.g.remove(s)},1300)}catch(e){}
+  if(why&&d<30&&(V9.lastToast||0)<V9.t-5){V9.lastToast=V9.t;toast('📢 צופרים לך · '+why)}
+  if(player.mode==='walk'&&d<12&&player.h)player.h.wave=0}
+function trafficTick(dt){const list=trafficNow();const me=player.mode==='drive'?player.car:null;const walking=player.mode==='walk';
+  for(const v of list){if(v===me||!v.g)continue;
+    // their own indicators while they turn
+    let dy=v.yaw-(v._py??v.yaw);while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;v._py=v.yaw;v._yr=(v._yr||0)*.85+(dt>0?dy/dt:0)*.15;
+    const side=v._yr>.18?-1:v._yr<-.18?1:0;if(side)v._sigT=1.2;if(v._sigT>0){v._sigT-=dt;v._side=side||v._side}else v._side=0;
+    if(Math.hypot(v.x-player.x,v.z-player.z)<70){v._bph=((v._bph||0)+dt)%.76;setBlink(v,v._side,v._bph<.38)}
+    // are you blocking them?
+    const PX=me?me.x:player.x,PZ=me?me.z:player.z;const sy=Math.sin(v.yaw),cy=Math.cos(v.yaw),rx=PX-v.x,rz=PZ-v.z,ah=rx*sy+rz*cy,lat=Math.abs(rx*cy-rz*sy);
+    const block=(me||walking)&&ah>.5&&ah<(me?11:9)&&lat<(me?2.4:2)&&Math.abs(v.speed)<1.2;
+    v._blk=block?(v._blk||0)+dt:Math.max(-1,(v._blk||0)-dt);
+    if(v._blk>(me?2.6:3.4)){v._blk=-3;npcHonk(v,me?'אתה חוסם את הנתיב':'זוז מהכביש!')}
+    if(v._bump&&V9.t-v._bump<.3&&me){v._bump=0;npcHonk(v,'נגעת ברכב שלהם!')}}}
+const _tick9=V8.tick;V8.tick=function(dt){_tick9(dt);V9.t+=dt;try{sigTick(dt)}catch(e){console.warn(e)}try{trafficTick(dt)}catch(e){console.warn(e)}};
+const _xc9=exitCar;exitCar=function(){if(player.car)setBlink(player.car,0,false);SIG.s=0;const r=_xc9.apply(this,arguments);sigHud();return r};
+
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
   if(good)J.good++;let promo='';const tl=JOBS[G.job].titles;
@@ -4384,6 +4456,3 @@ addEventListener('unhandledrejection',ev=>softErr(ev.reason));
 boot().then(()=>{BOOTED=true}).catch(showErr);
 })();
 </script>
-
-</body>
-</html>
