@@ -3672,7 +3672,7 @@ function busCabin(v){if(v.cabin)return v.cabin;const c=G_();c.visible=false;cons
   c.pax=[];for(let i=0;i<14;i++){const x=i%2?.75:-.75,z=-4.6+Math.floor(i/2)*1.1;if(x<0&&z>1.8)continue;const h=human(pick(PED));h.sit=true;animHuman(h,0,0);h.g.position.set(x,.35,z-.05);h.g.visible=false;c.add(h.g);c.pax.push(h)}
   v.g.add(c);v.cabin=c;return c}
 /* --- picture-in-picture cameras: rear, left, right (+ cabin camera on the bus) --- */
-let CAMSON=true;try{CAMSON=localStorage.getItem('fts_cams')!=='0'}catch(e){}
+let CAMSON=true;try{CAMSON=localStorage.getItem('fts_cams2')!=='0'}catch(e){}
 const PIP={rear:new THREE.PerspectiveCamera(58,2.2,.1,500),left:new THREE.PerspectiveCamera(55,1.5,.1,400),right:new THREE.PerspectiveCamera(55,1.5,.1,400),cabin:new THREE.PerspectiveCamera(70,1.5,.05,60)};
 function pipRects(){const sz=renderer.getSize(new THREE.Vector2()),W=sz.x,H=sz.y;const rw=Math.min(340,W*.34),rh=rw/2.2,sw=Math.min(240,W*.24),sh=sw/1.5;
   const r={rear:{x:(W-rw)/2,y:86,w:rw,h:rh},left:{x:10,y:H*.52,w:sw,h:sh},right:{x:W-sw-10,y:H*.52,w:sw,h:sh}};if(BUSJOB&&player.car===OUT.bus)r.cabin={x:W-sw-10,y:H*.52-sh-10,w:sw,h:sh};return{r,W,H}}
@@ -3683,7 +3683,7 @@ function aimPip(c){const yaw=c.yaw,f={x:Math.sin(yaw),z:Math.cos(yaw)},l={x:Math
 function pipFrames(rects){let box_=$('#pipBox');if(!box_){box_=document.createElement('div');box_.id='pipBox';document.querySelector('#game').appendChild(box_)}
   if(!rects){box_.hidden=true;return}box_.hidden=false;const lab={rear:'📷 מצלמה אחורית',left:'◀ צד שמאל',right:'צד ימין ▶',cabin:'🎥 תא הנוסעים'};const key=JSON.stringify(rects);if(box_._k===key)return;box_._k=key;
   box_.innerHTML=Object.entries(rects).map(([k,r])=>`<div class="pipf" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px"><span>${lab[k]}</span></div>`).join('')}
-function renderInsets(){const c=player.car;if(!CAMSON||GFX==='low'||player.mode!=='drive'||!c||!cur||cur.indoor){pipFrames(null);return}
+function renderInsets(){const c=player.car;if(!CAMSON||player.mode!=='drive'||!c||!cur||cur.indoor){pipFrames(null);return}
   const {r,H}=pipRects();aimPip(c);for(const k in r)PIP[k].aspect=r[k].w/r[k].h,PIP[k].updateProjectionMatrix();pipFrames(r);
   const sa=renderer.shadowMap.autoUpdate,ac=renderer.autoClear;renderer.shadowMap.autoUpdate=false;renderer.autoClear=false;renderer.setScissorTest(true);
   const cock=c.cock&&c.cock.visible;if(c.cock)c.cock.visible=false;const fr=c.front&&c.front.visible;if(c.front)c.front.visible=true;
@@ -3691,13 +3691,13 @@ function renderInsets(){const c=player.car;if(!CAMSON||GFX==='low'||player.mode!
     renderer.setViewport(R_.x,H-R_.y-R_.h,R_.w,R_.h);renderer.setScissor(R_.x,H-R_.y-R_.h,R_.w,R_.h);renderer.clear(true,true,false);renderer.render(cur.s,PIP[k]);
     if(k==='cabin'){c.cabin.visible=false;if(c.win)c.win.visible=true}}
   if(c.cock)c.cock.visible=cock;if(c.front)c.front.visible=fr;const sz=renderer.getSize(new THREE.Vector2());renderer.setScissorTest(false);renderer.setViewport(0,0,sz.x,sz.y);renderer.autoClear=ac;renderer.shadowMap.autoUpdate=sa}
-const _rfU=renderFrame;renderFrame=function(){_rfU();try{renderInsets()}catch(e){console.warn(e);CAMSON=false}};
+const _rfU=renderFrame;renderFrame=function(){_rfU();try{renderInsets()}catch(e){console.warn(e);try{const sz=renderer.getSize(new THREE.Vector2());renderer.setScissorTest(false);renderer.setViewport(0,0,sz.x,sz.y);renderer.autoClear=true}catch(_){}}};
 /* windshield hidden while the driver sits inside → the road is visible */
 const _tickU=V8.tick;V8.tick=function(dt){_tickU(dt);const c=player.car;
   for(const b of[OUT&&OUT.bus,c&&c.kind==='bus'?c:null])if(b&&b.front){const inside=player.mode==='drive'&&player.car===b&&camMode==='in';b.front.visible=!inside}
   for(const b of[OUT&&OUT.bus])if(b&&b.doors){const t=BUSJOB&&BUSJOB.doors?1:0;b.doorOpen+=(t-b.doorOpen)*Math.min(1,dt*4);b.doors.forEach((d,i)=>d.position.z=d.userData.z0+(i?1:-1)*1.05*b.doorOpen)}
   camBtnUI();busPanel()};
-function camBtnUI(){let b=$('#pipBtn');const show=player.mode==='drive'&&!!player.car&&GFX!=='low';if(!b&&show){b=document.createElement('button');b.id='pipBtn';b.className='hud hudbtn';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>{CAMSON=!CAMSON;try{localStorage.setItem('fts_cams',CAMSON?'1':'0')}catch(e){}toast(CAMSON?'📷 מצלמות פועלות':'📷 מצלמות כבויות')})}
+function camBtnUI(){let b=$('#pipBtn');const show=player.mode==='drive'&&!!player.car;if(!b&&show){b=document.createElement('button');b.id='pipBtn';b.className='hud hudbtn';document.querySelector('#game').appendChild(b);b.addEventListener('click',()=>{CAMSON=!CAMSON;try{localStorage.setItem('fts_cams2',CAMSON?'1':'0')}catch(e){}toast(CAMSON?'📷 מצלמות פועלות':'📷 מצלמות כבויות')})}
   if(b){b.hidden=!show;b.textContent=CAMSON?'📷 מצלמות ✓':'📷 מצלמות'}}
 /* --- bus driver console: next stop, turns, doors, validator --- */
 const PNAMES=['משה','רחל','דוד','שרה','יוסי','מיכל','אבי','נועה','חיים','ליאת','עומר','דנה','איתי','רונית','סאמי','ויקה'];
