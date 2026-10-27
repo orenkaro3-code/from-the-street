@@ -4114,7 +4114,7 @@ function noSignal(side){SIG.miss++;const w=side===1?'ימינה':'שמאלה';G.
   if(typeof BUSJOB!=='undefined'&&BUSJOB){BUSJOB.nosig=(BUSJOB.nosig||0)+1;msg='⚠️ נוסע: "נהג, תאותת!" · פנייה '+w+' בלי איתות'}
   else if(typeof TX!=='undefined'&&TX&&TX.state==='onboard'){TX.nosig=(TX.nosig||0)+1;msg='⚠️ הנוסע: "אתה לא מאותת? זה מסוכן" · פחות טיפ'}
   toast(msg,'bad');const v=nearestTraffic(35);if(v)setTimeout(()=>npcHonk(v,'בלי איתות'),350);
-  if(SIG.miss%3===0){const fine=100;G.money-=fine;addTx('קנס: פנייה בלי איתות',-fine,'מצלמה');hud();save();setTimeout(()=>toast('📸 מצלמת תנועה: קנס ₪'+fine+' על פנייה בלי איתות','bad'),1200)}}
+  if(SIG.miss%3===0){const fine=100;const co=(typeof BUSJOB!=='undefined'&&BUSJOB)?'חברת האוטובוסים':(typeof TX!=='undefined'&&TX)?'חברת המוניות':null;if(co){G.stats=G.stats||{};G.stats.coFines=(G.stats.coFines||0)+fine;setTimeout(()=>toast('📸 מצלמת תנועה: דוח ₪'+fine+' נשלח ל'+co+' · '+co+' משלמת, לא אתה','bad'),1200)}else{G.money-=fine;addTx('קנס: פנייה בלי איתות',-fine,'מצלמה');hud();save();setTimeout(()=>toast('📸 מצלמת תנועה: קנס ₪'+fine+' על פנייה בלי איתות','bad'),1200)}}}
 /* taxi passengers tip less when you don't signal */
 if(typeof txPay==='function'){const _txp9=txPay;txPay=async function(){const n=TX&&TX.nosig||0;const r=await _txp9.apply(this,arguments);if(n&&TX){const cut=Math.min(G.money,n*3);if(cut>0){G.money-=cut;addTx('טיפ שירד · לא איתתת',-cut,'מזומן');hud()}TX.nosig=0}return r}}
 /* ---------- other drivers: indicators + honking ---------- */
@@ -4140,6 +4140,9 @@ function trafficTick(dt){const list=trafficNow();const me=player.mode==='drive'?
     if(v._bump&&V9.t-v._bump<.3&&me){v._bump=0;npcHonk(v,'נגעת ברכב שלהם!')}}}
 const _tick9=V8.tick;V8.tick=function(dt){_tick9(dt);V9.t+=dt;try{sigTick(dt)}catch(e){console.warn(e)}try{trafficTick(dt)}catch(e){console.warn(e)}};
 const _xc9=exitCar;exitCar=function(){if(player.car)setBlink(player.car,0,false);SIG.s=0;const r=_xc9.apply(this,arguments);sigHud();return r};
+/* fines while working as a bus/taxi driver go to the company, not to you */
+if(typeof addFine==='function'){const _af9=addFine;addFine=function(t,a){const co=(typeof BUSJOB!=='undefined'&&BUSJOB)?'חברת האוטובוסים':(typeof TX!=='undefined'&&TX)?'חברת המוניות':null;
+  if(co&&player.mode==='drive'){G.stats=G.stats||{};G.stats.coFines=(G.stats.coFines||0)+a;toast('🧾 דוח: '+t+' · ₪'+a+' — נשלח ל'+co+', היא משלמת ולא אתה');return}return _af9.apply(this,arguments)}}
 
 /* =============== DAILY LIFE LOOP =============== */
 async function endWork(rows,bonus,good,quote){const J=G.jobs[G.job];const HRS=G.shiftH||8;const base=HRS*J.wage;rows=[['שעות עבודה',HRS],...rows];G.energy=Math.max(0,G.energy-HRS*4);earn(base+bonus,'משכורת · '+JOBS[G.job].n);
@@ -4463,5 +4466,6 @@ addEventListener('unhandledrejection',ev=>softErr(ev.reason));
 boot().then(()=>{BOOTED=true}).catch(showErr);
 })();
 </script>
+
 </body>
 </html>
